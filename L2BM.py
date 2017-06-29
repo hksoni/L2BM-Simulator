@@ -27,6 +27,7 @@ import sys
 import argparse
 from MulticastTree import *
 from Heap import *
+import Utils as  utils
 # from heapq_showtree import show_tree
 # from heapq_heapdata import data
 
@@ -126,7 +127,7 @@ class L2BM(MulticastTree):
                 return False
 
 
-def main(network_g):
+def main_l2bm(network_g):
     dst1 = L2BM('vs1', 6, 10, 10)
     dst2 = L2BM('vs1', 5, 10, 10)
     dst1.add_node(network_g, 'vs2')
@@ -160,6 +161,6 @@ if __name__ == "__main__":
     parser.add_argument("--network_dot", help="network topology in DOT format")
     args = parser.parse_args()
     if args.network_dot is None:
-        args.network_dot = "/user/hsoni/home/internet2-al2s.dot"
+        args.network_dot = utils.working_dir+"/internet2-al2s.dot"
     network_g = nx.read_dot(args.network_dot)
-    main(network_g)
+    main_l2bm(network_g)

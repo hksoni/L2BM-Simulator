@@ -34,9 +34,10 @@ from multiprocessing.pool import ThreadPool
 
 class AlgoExecutionThread(Process):
 
-    def __init__(self, algo_n, nw_g, e_l, tree_objs, no_receiver_to_wait, re_path, no_of_g, run_num):
+    def __init__(self, algo_n, nw_g, link_eliminate_bw_filter_value, e_l, tree_objs, re_path, no_of_g, run_num):
         self.algo_name = algo_n
         self.n_g= nw_g
+        self.host_link_filter= link_eliminate_bw_filter_value
         self.events = e_l
         self.tree_objs = tree_objs
         self.receiver_accept = 0
@@ -50,6 +51,7 @@ class AlgoExecutionThread(Process):
         self.result_path = re_path
         super(AlgoExecutionThread, self).__init__()
 
+
     def run(self):
         bw_accept_map_ratio = {}
         total_bw_request_map = {}
@@ -59,7 +61,7 @@ class AlgoExecutionThread(Process):
         r_p = self.result_path+'/'+self.algo_name+'/'+str(self.no_of_groups)+'/run'+str(self.run_number)
         self.mkdir(r_p)
         # print 'execute_sched_on_algo'
-        link_caps = filter(lambda x: x!='1000', nx.get_edge_attributes(self.n_g, 'capacity').values())
+        link_caps = filter(lambda x: x!=self.host_link_filter, nx.get_edge_attributes(self.n_g, 'capacity').values())
         np_link_caps = np.array(link_caps, dtype=float)
         # log_str_file = open(r_p+'/log-res.txt',"w")
         for r_a, event in self.events:
@@ -84,7 +86,6 @@ class AlgoExecutionThread(Process):
                         bw_accept_map[str(tree.bandwidth)] += 1
                     else:
                         bw_accept_map[str(tree.bandwidth)] = 1
-
                 else:
                     ''
                     # log_str += '--- Fail'+'\n'
@@ -95,7 +96,7 @@ class AlgoExecutionThread(Process):
             else:
                 print 'unknown event'
             # log_str_file.writelines(log_str)
-            link_bws = filter(lambda x: x!='1000', nx.get_edge_attributes(self.n_g, 'bandwidth').values())
+            link_bws = filter(lambda x: x!=self.host_link_filter, nx.get_edge_attributes(self.n_g, 'bandwidth').values())
             # print link_bws
             np_link_bws = np.array(link_bws, dtype=float)
             np_utils = np.true_divide(np.subtract(np_link_caps, np_link_bws), np_link_caps)

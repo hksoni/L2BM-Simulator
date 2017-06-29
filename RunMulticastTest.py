@@ -35,47 +35,55 @@ from Heap import *
 from multiprocessing import Pool
 import Utils as utils
 
-def main(network_g):
+def sim_main(network_g, start, stop):
     'Number of multicast groups'
-    runs = range(200, 500, 1)
-    group_numbers_list = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
-    # group_numbers_list = [100]
-    bandwidths = [2, 5, 8]
-    # bandwidths = [2]
-    mean_receiver_inter_arrival = 5.0
+    if start is None or stop is None:
+        runs = range(0, 500, 1)
+    else:
+        runs = range(int(start), int(stop), 1)
+    group_numbers_list = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150]
+    # group_numbers_list = None
+    # runs = None
+    sched_path = None
+    bandwidths = [1, 2, 5, 9, 12, 25, 50, 80]
+    mean_receiver_inter_arrival = 3.0
     no_of_receiver_per_group = 13
+    theta_inits = [10, 20, 30, 40, 50, 60]
     candidate_nodes_data = filter(lambda (n, d): d['type'] == 'switch', network_g.nodes(data=True))
     candidate_nodes = [i[0] for i in candidate_nodes_data]
     #results will be stored at -> save_results_path/<algo-name>/#groups/run<no>/
-    save_results_path = utils.working_dir+'/qos-multicast-compile/simulation/wo-churn/congested-va-bw/'
+    save_results_path = utils.working_dir+'/qos-multicast-compile/simulation/wo-churn-congested/'
     for no_of_groups in group_numbers_list:
         for run_num in runs:
             print 'no_of_groups:'+str(no_of_groups) +',run_num:'+str(run_num)
             group_bandwidths = np.random.choice(bandwidths, no_of_groups, replace=True)
-            execute_run(network_g, no_of_groups, mean_receiver_inter_arrival, no_of_receiver_per_group,
-                        candidate_nodes, group_bandwidths, run_num, save_results_path)
+            # print group_bandwidths
+            execute_run(network_g, no_of_groups, theta_inits, mean_receiver_inter_arrival, no_of_receiver_per_group,
+                        candidate_nodes, group_bandwidths, run_num, save_results_path, sched_path)
 
 
-def execute_run(network_graph, no_of_groups, mean_receiver_inter_arrival,
-                no_of_receiver_per_group, candidate_nodes,
-                group_bandwidths, run_number, result_path):
+def execute_run(network_graph, no_of_groups, theta_inits, mean_receiver_inter_arrival, no_of_receiver_per_group,
+                candidate_nodes, group_bandwidths, run_number, result_path, sched_path=None):
     mkdir(result_path)
-    algo_names = ['dst', 'dst-lb', 'l2bm-10', 'l2bm-40', 'l2bm-60']
     source = np.random.choice(candidate_nodes)
     dists_map = utils.get_exp_dists(network_g, source, candidate_nodes)
     nodes, probs = utils.get_porbs(dists_map)
-    events_list, dst_ls, dst_lb_ls, l2bm_10_ls, l2bm_40_ls, l2bm_60_ls = \
-    create_sched_heap_congested_traffic(no_of_groups, mean_receiver_inter_arrival, no_of_receiver_per_group,
-                      group_bandwidths, nodes, probs)
+    if sched_path is not None:
+        events_list, dst_ls, dst_lb_ls, l2bm_theta_obj_dict = get_sched_heap(no_of_groups, theta_inits, sched_path)
+    else:
+        events_list, dst_ls, dst_lb_ls, l2bm_theta_obj_dict = create_sched_heap_congested_traffic(
+            no_of_groups, mean_receiver_inter_arrival, no_of_receiver_per_group, group_bandwidths, theta_inits,
+            nodes, probs)
     # save_result_run_path = result_path+'/'+a_n+'/'+str(no_of_groups)+'/run'+str(run_number)
-    launch_run(result_path, events_list, network_graph, dst_ls, dst_lb_ls, l2bm_10_ls,
-               l2bm_40_ls, l2bm_60_ls, algo_names, no_of_groups, run_number)
+    launch_run(result_path, events_list, network_graph, dst_ls, dst_lb_ls, l2bm_theta_obj_dict,
+               theta_inits, no_of_groups, run_number)
 
 
 def grid_main(network_g):
     'Number of multicast groups'
     runs = np.arange(1, 21, 1)
     group_numbers_list = [30, 40, 50, 60, 70]
+    theta_inits = [10, 40, 60]
     save_res_path = utils.working_dir+'/qos-multicast-compile/sim-exp3-vabw-30-70/'
     schedule_path = utils.working_dir+'/qos-multicast-compile/exp3-vabw-25-70-LLDMs/dcbr-10-10/'
     bw_map_file = utils.working_dir+'/qos-multicast-compile/exp3-vabw-25-70-LLDMs/ip-bw-qos-mapping-va.txt'
@@ -85,84 +93,84 @@ def grid_main(network_g):
             run_schedule_path = schedule_path+'/'+str(no_of_groups)+'/run'+str(run_num)
             # execute_controller_exec_seq(network_g, bw_map_file, no_of_groups, run_num,
             #                             save_res_path, run_schedule_path)
-            execute_grid_run(network_g, bw_map_file, no_of_groups, run_num, save_res_path, run_schedule_path)
+            execute_grid_run(network_g, bw_map_file, no_of_groups, run_num, theta_inits, save_res_path, run_schedule_path)
 
 
-def execute_grid_run(network_graph, bw_map_file, no_of_groups, run_number, result_path, scheds_path):
+def execute_grid_run(network_graph, bw_map_file, no_of_groups, run_number, theta_inits, result_path, scheds_path):
     mkdir(result_path)
-    algo_names = ['dst', 'dst-lb', 'l2bm-10', 'l2bm-40', 'l2bm-60']
-    events_list, dst_ls, dst_lb_ls, l2bm_10_ls, l2bm_40_ls, l2bm_60_ls = \
-        get_grid_experiment_inputs(scheds_path, bw_map_file)
+    # algo_names = ['dst', 'dst-lb', 'l2bm-10', 'l2bm-40', 'l2bm-60']
+    theta_inits = [10, 40, 60]
+    events_list, dst_ls, dst_lb_ls, l2bm_theta_obj_dict = get_grid_experiment_inputs(scheds_path, bw_map_file, theta_inits)
     # save_result_run_path = result_path+'/'+a_n+'/'+str(no_of_groups)+'/run'+str(run_number)
-    launch_run(result_path, events_list, network_graph, dst_ls, dst_lb_ls, l2bm_10_ls,
-               l2bm_40_ls, l2bm_60_ls, algo_names, no_of_groups, run_number)
+    launch_run(result_path, events_list, network_graph, dst_ls, dst_lb_ls, l2bm_theta_obj_dict,
+               theta_inits, no_of_groups, run_number)
 
 
 def execute_controller_exec_seq(network_graph, bw_map_file, no_of_groups, run_number, result_path, scheds_path):
     mkdir(result_path)
     algo_names = ['dst', 'dst-lb', 'l2bm-10', 'l2bm-40', 'l2bm-60']
-    events_list, dst_ls, dst_lb_ls, l2bm_10_ls, l2bm_40_ls, l2bm_60_ls = \
-        get_controller_exec_seq(scheds_path, bw_map_file)
+    theta_inits = [10, 40, 60]
+    events_list, dst_ls, dst_lb_ls, l2bm_theta_obj_dict = get_controller_exec_seq(scheds_path, bw_map_file, theta_inits)
     # save_result_run_path = result_path+'/'+a_n+'/'+str(no_of_groups)+'/run'+str(run_number)
-    launch_run(result_path, events_list, network_graph, dst_ls, dst_lb_ls, l2bm_10_ls,
-               l2bm_40_ls, l2bm_60_ls, algo_names, no_of_groups, run_number)
+    launch_run(result_path, events_list, network_graph, dst_ls, dst_lb_ls,  l2bm_theta_obj_dict,
+               theta_inits, no_of_groups, run_number)
 
 
-def create_sched_heap(no_of_groups, mean_receiver_inter_arrival, no_of_receiver_per_group,
-                      group_bandwidths, candidate_nodes, nodes_weight=None):
-    ev_heap = Heap()
-    ev_list = []
-    dst_obj_ls = []
-    dst_lb_obj_ls = []
-    l2bm_10_obj_ls = []
-    l2bm_40_obj_ls = []
-    l2bm_60_obj_ls = []
-    event_index = 0
-    sender_inter_arrival_time = np.random.exponential(3, no_of_groups)
-    sender_arrival_time = np.cumsum(sender_inter_arrival_time)
-    for n in range(0,no_of_groups):
-        receiver_inter_arrival_time = np.random.exponential(mean_receiver_inter_arrival,
-                                                            no_of_receiver_per_group)
-
-        # print receiver_inter_arrival_time
-        receiver_arrival_time = np.add(np.cumsum(receiver_inter_arrival_time), sender_arrival_time[int(n)])
-        # print receiver_arrival_time
-        receivers = np.random.choice(candidate_nodes, no_of_receiver_per_group+1, replace=False).tolist()
-        source = receivers.pop(0)
-        bw = group_bandwidths[n]
-        dst = DynamicSteinerTree(source,bw)
-        dst_lb = DynamicSteinerTreeLB(source,bw)
-        l2bm_10 = L2BM(source, bw, 10)
-        l2bm_40 = L2BM(source, bw, 40)
-        l2bm_60 = L2BM(source, bw, 60)
-        dst_obj_ls.append(dst)
-        dst_lb_obj_ls.append(dst_lb)
-        l2bm_10_obj_ls.append(l2bm_10)
-        l2bm_40_obj_ls.append(l2bm_40)
-        l2bm_60_obj_ls.append(l2bm_60)
-        for r_n, r_a in itertools.izip(receivers, receiver_arrival_time):
-            me = MulticastEvent(n, source, int(bw), r_n, r_a, 'join')
-            item_id = event_index
-            event_index = event_index + 1
-            # print item_id
-            ev_heap.push(r_a, item_id, me)
-    while not ev_heap.is_empty():
-        r_a, item_id, ev = ev_heap.pop()
-        ev_list.append((r_a, ev))
-    return ev_list, dst_obj_ls, dst_lb_obj_ls, l2bm_10_obj_ls, l2bm_40_obj_ls, l2bm_60_obj_ls
+# def create_sched_heap(no_of_groups, mean_receiver_inter_arrival, no_of_receiver_per_group,
+#                       group_bandwidths, candidate_nodes, nodes_weight=None):
+#     ev_heap = Heap()
+#     ev_list = []
+#     dst_obj_ls = []
+#     dst_lb_obj_ls = []
+#     l2bm_10_obj_ls = []
+#     l2bm_40_obj_ls = []
+#     l2bm_60_obj_ls = []
+#     event_index = 0
+#     sender_inter_arrival_time = np.random.exponential(3, no_of_groups)
+#     sender_arrival_time = np.cumsum(sender_inter_arrival_time)
+#     for n in range(0,no_of_groups):
+#         receiver_inter_arrival_time = np.random.exponential(mean_receiver_inter_arrival,
+#                                                             no_of_receiver_per_group)
+#
+#         # print receiver_inter_arrival_time
+#         receiver_arrival_time = np.add(np.cumsum(receiver_inter_arrival_time), sender_arrival_time[int(n)])
+#         # print receiver_arrival_time
+#         receivers = np.random.choice(candidate_nodes, no_of_receiver_per_group+1, replace=False).tolist()
+#         source = receivers.pop(0)
+#         bw = group_bandwidths[n]
+#         dst = DynamicSteinerTree(source,bw)
+#         dst_lb = DynamicSteinerTreeLB(source,bw)
+#         l2bm_10 = L2BM(source, bw, 10)
+#         l2bm_40 = L2BM(source, bw, 40)
+#         l2bm_60 = L2BM(source, bw, 60)
+#         dst_obj_ls.append(dst)
+#         dst_lb_obj_ls.append(dst_lb)
+#         l2bm_10_obj_ls.append(l2bm_10)
+#         l2bm_40_obj_ls.append(l2bm_40)
+#         l2bm_60_obj_ls.append(l2bm_60)
+#         for r_n, r_a in itertools.izip(receivers, receiver_arrival_time):
+#             me = MulticastEvent(n, source, int(bw), r_n, r_a, 'join')
+#             item_id = event_index
+#             event_index = event_index + 1
+#             # print item_id
+#             ev_heap.push(r_a, item_id, me)
+#     while not ev_heap.is_empty():
+#         r_a, item_id, ev = ev_heap.pop()
+#         ev_list.append((r_a, ev))
+#     return ev_list, dst_obj_ls, dst_lb_obj_ls, l2bm_10_obj_ls, l2bm_40_obj_ls, l2bm_60_obj_ls
 
 
 def create_sched_heap_congested_traffic(no_of_groups, mean_receiver_inter_arrival, no_of_receiver_per_group,
-                                        group_bandwidths, candidate_nodes, nodes_weight=None):
+                                        group_bandwidths, theta_inits, candidate_nodes, nodes_weight=None):
     ev_heap = Heap()
     ev_list = []
     dst_obj_ls = []
     dst_lb_obj_ls = []
-    l2bm_10_obj_ls = []
-    l2bm_40_obj_ls = []
-    l2bm_60_obj_ls = []
+    l2bm_theta_obj_dict = {}
+    for theta in theta_inits:
+        l2bm_theta_obj_dict[theta] = []
     event_index = 0
-    sender_inter_arrival_time = np.random.exponential(3, no_of_groups)
+    sender_inter_arrival_time = np.random.exponential(2, no_of_groups)
     sender_arrival_time = np.cumsum(sender_inter_arrival_time)
 
     # concentrated_nodes = np.random.choice(candidate_nodes, no_of_receiver_per_group+1, replace=False).tolist()
@@ -170,7 +178,6 @@ def create_sched_heap_congested_traffic(no_of_groups, mean_receiver_inter_arriva
 
         receiver_inter_arrival_time = np.random.exponential(mean_receiver_inter_arrival,
                                                             no_of_receiver_per_group)
-
         # print receiver_inter_arrival_time
         receiver_arrival_time = np.add(np.cumsum(receiver_inter_arrival_time), sender_arrival_time[int(n)])
         # print receiver_arrival_time
@@ -179,14 +186,10 @@ def create_sched_heap_congested_traffic(no_of_groups, mean_receiver_inter_arriva
         bw = group_bandwidths[n]
         dst = DynamicSteinerTree(source,bw)
         dst_lb = DynamicSteinerTreeLB(source,bw)
-        l2bm_10 = L2BM(source, bw, 10)
-        l2bm_40 = L2BM(source, bw, 40)
-        l2bm_60 = L2BM(source, bw, 60)
+        for theta in theta_inits:
+            l2bm_theta_obj_dict[theta].append(L2BM(source, bw, int(theta)))
         dst_obj_ls.append(dst)
         dst_lb_obj_ls.append(dst_lb)
-        l2bm_10_obj_ls.append(l2bm_10)
-        l2bm_40_obj_ls.append(l2bm_40)
-        l2bm_60_obj_ls.append(l2bm_60)
         for r_n, r_a in itertools.izip(receivers, receiver_arrival_time):
             me = MulticastEvent(n, source, int(bw), r_n, r_a, 'join')
             item_id = event_index
@@ -196,7 +199,37 @@ def create_sched_heap_congested_traffic(no_of_groups, mean_receiver_inter_arriva
     while not ev_heap.is_empty():
         r_a, item_id, ev = ev_heap.pop()
         ev_list.append((r_a, ev))
-    return ev_list, dst_obj_ls, dst_lb_obj_ls, l2bm_10_obj_ls, l2bm_40_obj_ls, l2bm_60_obj_ls
+    return ev_list, dst_obj_ls, dst_lb_obj_ls, l2bm_theta_obj_dict
+
+
+def get_sched_heap(no_of_groups, theta_inits, sched_file_path):
+    e_list = []
+    group_bandwidths = {}
+    dst_obj_ls = []
+    dst_lb_obj_ls = []
+    l2bm_theta_obj_dict = {}
+    source_list_dict = {}
+    for theta in theta_inits:
+        l2bm_theta_obj_dict[theta] = []
+    lines = [line.rstrip('\n') for line in open(sched_file_path)]
+    for l in lines:
+        m = eval(l)
+        me = MulticastEvent(m['t_index'], m['t_source'], m['t_bandwidth'], m['recv_node'], m['ev_time'], m['ev_type'])
+        group_bandwidths[int(m['t_index'])] = int(m['t_bandwidth'])
+        r_a = m['ev_time']
+        source_list_dict[int(m['t_index'])] = m['t_source']
+        e_list.append((r_a, me))
+    print group_bandwidths
+    for n in range(0,no_of_groups):
+        bw = group_bandwidths[n]
+        source = source_list_dict[n]
+        dst = DynamicSteinerTree(source,bw)
+        dst_lb = DynamicSteinerTreeLB(source,bw)
+        for theta in theta_inits:
+            l2bm_theta_obj_dict[theta].append(L2BM(source, bw, int(theta)))
+        dst_obj_ls.append(dst)
+        dst_lb_obj_ls.append(dst_lb)
+    return e_list, dst_obj_ls, dst_lb_obj_ls, l2bm_theta_obj_dict
 
 
 
@@ -210,9 +243,10 @@ def mkdir(path):
             raise
 
 
-def get_grid_experiment_inputs(run_location, bw_map_file):
+def get_grid_experiment_inputs(run_location, bw_map_file, theta_inits):
     group_mem_ia_rd_dict = {}
     group_id_ip_bw_dict = {}
+    l2bm_theta_obj_dict = {}
     sender_sched_f = run_location+'/group_sender_sched.txt'
     group_bw_f = bw_map_file
     group_mem_ia_rd_f = run_location+'/group_mem_ia_rd.txt'
@@ -224,7 +258,6 @@ def get_grid_experiment_inputs(run_location, bw_map_file):
     for k,v in group_id_ip_bw_str_key.iteritems():
         group_id_ip_bw_dict[int(k)] = int(v[1])/1000
         # print group_id_ip_bw_dict[int(k)]
-        # group_id_ip_bw_dict[int(k)] = int(2)
     group_sender_arrivals = np.cumsum(group_sender_inter_arrival_ls)
     ev_heap = Heap()
     ev_list = []
@@ -232,9 +265,8 @@ def get_grid_experiment_inputs(run_location, bw_map_file):
     # print 'range(len(group_mem_ia_rd_dict))', range(len(group_mem_ia_rd_dict))
     dst_obj_ls = [None for _ in range(len(group_mem_ia_rd_dict))]
     dst_lb_obj_ls = [None for _ in range(len(group_mem_ia_rd_dict))]
-    l2bm_10_obj_ls = [None for _ in range(len(group_mem_ia_rd_dict))]
-    l2bm_40_obj_ls = [None for _ in range(len(group_mem_ia_rd_dict))]
-    l2bm_60_obj_ls = [None for _ in range(len(group_mem_ia_rd_dict))]
+    for theta in theta_inits:
+        l2bm_theta_obj_dict[theta] = [None for _ in range(len(group_mem_ia_rd_dict))]
     for k,v in group_mem_ia_rd_dict.iteritems():
         sender_arrival_tiime = group_sender_arrivals[k]
         source = v[0][0]
@@ -242,14 +274,10 @@ def get_grid_experiment_inputs(run_location, bw_map_file):
         bw = group_id_ip_bw_dict[int(k)]
         dst = DynamicSteinerTree(source,bw)
         dst_lb = DynamicSteinerTreeLB(source,bw)
-        l2bm_10 = L2BM(source, bw, 10)
-        l2bm_40 = L2BM(source, bw, 40)
-        l2bm_60 = L2BM(source, bw, 60)
         dst_obj_ls[int(k)] = dst
         dst_lb_obj_ls[int(k)] = dst_lb
-        l2bm_10_obj_ls[int(k)] = l2bm_10
-        l2bm_40_obj_ls[int(k)] = l2bm_40
-        l2bm_60_obj_ls[int(k)] = l2bm_60
+        for theta in theta_inits:
+            l2bm_theta_obj_dict[theta][int(k)] = L2BM(source, bw, int(theta))
         cumsum_arrival_time = sender_arrival_tiime
         for r_info in v:
             recv, i_a, rd = r_info
@@ -261,12 +289,13 @@ def get_grid_experiment_inputs(run_location, bw_map_file):
     while not ev_heap.is_empty():
         r_a, item_id, ev = ev_heap.pop()
         ev_list.append((r_a, ev))
-    return ev_list, dst_obj_ls, dst_lb_obj_ls, l2bm_10_obj_ls, l2bm_40_obj_ls, l2bm_60_obj_ls
+    return ev_list, dst_obj_ls, dst_lb_obj_ls, l2bm_theta_obj_dict
 
 
-def get_controller_exec_seq(run_location, bw_map_file):
+def get_controller_exec_seq(run_location, bw_map_file, theta_inits):
     group_mem_ia_rd_dict = {}
     group_id_ip_bw_dict = {}
+    l2bm_theta_obj_dict = {}
     group_bw_f = bw_map_file
     ev_list = []
     group_id_ip_bw_str_key = utils.get_group_bw_dict(group_bw_f)
@@ -280,22 +309,17 @@ def get_controller_exec_seq(run_location, bw_map_file):
         group_mem_ia_rd_dict[int(k)] = v
     dst_obj_ls = [None for _ in range(len(group_mem_ia_rd_dict))]
     dst_lb_obj_ls = [None for _ in range(len(group_mem_ia_rd_dict))]
-    l2bm_10_obj_ls = [None for _ in range(len(group_mem_ia_rd_dict))]
-    l2bm_40_obj_ls = [None for _ in range(len(group_mem_ia_rd_dict))]
-    l2bm_60_obj_ls = [None for _ in range(len(group_mem_ia_rd_dict))]
+    for theta in theta_inits:
+        l2bm_theta_obj_dict[theta] = [None for _ in range(len(group_mem_ia_rd_dict))]
     for k,v in group_mem_ia_rd_dict.iteritems():
         source = v[0][0]
         bw = group_id_ip_bw_dict[int(k)]
         dst = DynamicSteinerTree(source,bw)
         dst_lb = DynamicSteinerTreeLB(source,bw)
-        l2bm_10 = L2BM(source, bw, 10)
-        l2bm_40 = L2BM(source, bw, 40)
-        l2bm_60 = L2BM(source, bw, 60)
         dst_obj_ls[int(k)] = dst
         dst_lb_obj_ls[int(k)] = dst_lb
-        l2bm_10_obj_ls[int(k)] = l2bm_10
-        l2bm_40_obj_ls[int(k)] = l2bm_40
-        l2bm_60_obj_ls[int(k)] = l2bm_60
+        for theta in theta_inits:
+            l2bm_theta_obj_dict[theta][int(k)] = L2BM(source, bw, int(theta))
     try:
         with open(controller_seq_f) as f:
             lines = [x.strip('\n') for x in f.readlines()]
@@ -313,7 +337,7 @@ def get_controller_exec_seq(run_location, bw_map_file):
     except Exception as e:
         print ('error in reading file named ' + controller_seq_f)
         sys.exit(1)
-    return ev_list, dst_obj_ls, dst_lb_obj_ls, l2bm_10_obj_ls, l2bm_40_obj_ls, l2bm_60_obj_ls
+    return ev_list, dst_obj_ls, dst_lb_obj_ls, l2bm_theta_obj_dict
 
 
 # def get_group_bw_dict(bw_map_file):
@@ -335,8 +359,8 @@ def get_controller_exec_seq(run_location, bw_map_file):
 
 
 
-def launch_run(result_path, events_list, network_graph, dst_ls, dst_lb_ls, l2bm_10_ls,
-               l2bm_40_ls, l2bm_60_ls, algo_names, no_of_groups, run_number):
+def launch_run(result_path, events_list, network_graph, dst_ls, dst_lb_ls, l2bm_theta_obj_dict,
+               theta_inits, no_of_groups, run_number):
     f = open(result_path+str(no_of_groups)+'-'+str(run_number)+str('-ev_list.txt'),"w")
     for r,e in events_list:
         f.writelines(json.dumps(e.__dict__)+'\n')
@@ -348,18 +372,18 @@ def launch_run(result_path, events_list, network_graph, dst_ls, dst_lb_ls, l2bm_
     #     me = MulticastEvent(m['t_index'], m['t_source'], m['t_bandwidth'], m['recv_node'], m['ev_time'], m['ev_type'])
     #     r_a = m['ev_time']
     #     e_list.append((r_a, me))
-    nw_g_dst = network_graph.copy()
-    nw_g_dst_lb = network_graph.copy()
-    nw_g_l2bm_10 = network_graph.copy()
-    nw_g_l2bm_40 = network_graph.copy()
-    nw_g_l2bm_60 = network_graph.copy()
-    pool = Pool(4)
+    pool = Pool(len(theta_inits)+2)
+    algo_names = []
+    algo_names.append('dst')
+    algo_names.append('dst-lb')
     # args = [('l2bm-10', nw_g_l2bm_10, events_list, l2bm_10_ls)]
-    args = [('dst', nw_g_dst, events_list, dst_ls),
-            ('dst_lb', nw_g_dst_lb, events_list, dst_lb_ls),
-            ('l2bm-10', nw_g_l2bm_10, events_list, l2bm_10_ls),
-            ('l2bm-40', nw_g_l2bm_40, events_list, l2bm_40_ls),
-            ('l2bm-60', nw_g_l2bm_60, events_list, l2bm_60_ls)]
+    args = [('dst', network_graph.copy(), events_list, dst_ls)]
+    # args = [('dst', network_graph.copy(), events_list, dst_ls),
+    #         ('dst-lb', network_graph.copy(), events_list, dst_lb_ls)]
+    for theta in theta_inits:
+        algo_n = 'l2bm-'+str(theta)
+        algo_names.append(algo_n)
+        args.append((algo_n, network_graph.copy(), events_list, l2bm_theta_obj_dict[theta]))
     results = pool.map(execute_sched_on_algo, args)
     pool.close()
     pool.join()
@@ -393,6 +417,7 @@ def execute_sched_on_algo(args):
     total_receivers_request = 0
     total_bw_request = 0.0
     algo_name = args[0]
+    print algo_name
     nw_g = args[1]
     e_l = args[2]
     tree_objs = args[3]
@@ -424,7 +449,10 @@ def execute_sched_on_algo(args):
                 else:
                     bw_accept_map[str(bw)] = 1
     for bw, num in total_bw_request_map.iteritems():
-        bw_accept_map_ratio[str(bw)] = float(bw_accept_map[str(bw)]) / float(num)
+        if bw_accept_map.has_key(str(bw)):
+            bw_accept_map_ratio[str(bw)] = float(bw_accept_map[str(bw)]) / float(num)
+        else:
+            bw_accept_map_ratio[str(bw)] = 0
     tn = 0
     bn_l = []
     for t in tree_objs:
@@ -436,23 +464,18 @@ def execute_sched_on_algo(args):
 
 
 
-def test_fn():
-    l = [1,2,3]
-    a, b, c = l
-    print a,  b, c
-    print l
-
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--network_dot", help="network topology in DOT format")
+    parser.add_argument("--run_start_num", help="Start numer")
+    parser.add_argument("--run_stop_num", help="Start numer")
     args = parser.parse_args()
     if args.network_dot is None:
         # args.network_dot = "/user/hsoni/home/internet2-al2s.dot"
         args.network_dot = utils.working_dir+'/internet2-al2s.dot'
     network_g = nx.read_dot(args.network_dot)
-    # get_grid_experiment_inputs('/user/hsoni/home/qos-multicast-compile/exp2-2mb-10-100/dst/')
-    main(network_g)
+    sim_main(network_g, args.run_start_num, args.run_stop_num)
     # grid_main(network_g)
     # get_controller_exec_seq('/home/hsoni/qos-multicast-compile/exp2-2mb-10-100/dst/100/run1/',
     #                         '/user/hsoni/home/qos-multicast-compile/exp2-2mb-10-100/ip-bw-qos-mapping.txt-const')

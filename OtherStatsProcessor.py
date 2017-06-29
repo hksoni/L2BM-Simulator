@@ -37,6 +37,7 @@ import numpy as np
 import Utils  as util
 import itertools
 import matplotlib.pyplot as plt
+plt.style.use('classic')
 import Utils as utils
 
 def main():
@@ -58,6 +59,8 @@ class OtherStatsProcessorWOChurn(object):
                 lines = [x.strip('\n') for x in f.readlines()]
             bw_accept_map = eval(lines[4].split('=')[1])
             bw_accept_ratio_map = eval(lines[7].split('=')[1])
+            bw_accept_ratio_map = {int(k):float(v) for k,v in bw_accept_ratio_map.items()}
+            bw_accept_map = {int(k):int(v) for k,v in bw_accept_map.items()}
         except Exception as ex:
             print ('Exception in get_other_stats_wo_churn: ' + other_stat_f)
             print (ex)
@@ -202,26 +205,39 @@ class OtherStatsProcessorWOChurn(object):
     def plot_other_metrics_data_points(self, lbl_plot_data_dict_ls, plot_save_dir, group_start, group_stop,
                                        group_int, color_dict, marker_dict):
         np_group_size = np.arange(int(group_start), int(group_stop) + 1, int(group_int))
-        xticks = np.arange(int(group_start)-10, int(group_stop)+10 + 1, int(group_int))
+        xticks = np.arange(int(group_start)-int(group_int), int(group_stop)+int(group_int) + 1, int(group_int))
+        exp = int(np.log10(group_int))
+        if exp == 2:
+            lbl_prefix = "(in hundreds)"
+        elif exp == 3:
+            lbl_prefix = "(in thousands)"
+        elif exp == 4:
+            lbl_prefix = "(in ten thousands)"
+        else:
+            exp = 0
+            lbl_prefix = ''
+        xticks = np.true_divide(xticks, 10**exp)
+        np_group_size = np.true_divide(np_group_size, 10**exp)
+        xlabel = 'Number of Groups' + lbl_prefix
         plot_metrics_for_all_the_algos('recv-accept', plot_save_dir, lbl_plot_data_dict_ls, 0, np_group_size, color_dict,
-                                       marker_dict, 'Number of Groups', 'Number of Join Request Accepted',
+                                       marker_dict, xlabel, 'Number of Join Request Accepted',
                                        'Join Request Accepted Vs Number of groups', xticks_ls=xticks, loc=0)
         plot_metrics_for_all_the_algos('bw-accept', plot_save_dir, lbl_plot_data_dict_ls, 1, np_group_size, color_dict,
-                                       marker_dict, 'Number of Groups', 'Bandwidth Demands',
+                                       marker_dict, xlabel, 'Bandwidth Demands',
                                        'Bandwidth Demands Vs Number of groups', xticks_ls=xticks, loc=0)
         plot_metrics_for_all_the_algos('total-branch-nodes', plot_save_dir, lbl_plot_data_dict_ls, 2, np_group_size,
-                                       color_dict, marker_dict, 'Number of Groups', 'Total Branch Nodes',
+                                       color_dict, marker_dict, xlabel, 'Total Branch Nodes',
                                        'Total Branch Nodes Vs Number of groups', xticks_ls=xticks, loc=0)
         plot_metrics_for_all_the_algos('total-tree-nodes', plot_save_dir, lbl_plot_data_dict_ls, 3, np_group_size,
-                                       color_dict, marker_dict, 'Number of Groups', 'Total Tree Nodes',
+                                       color_dict, marker_dict, xlabel, 'Total Tree Nodes',
                                        'Total Tree Nodes Vs Number of groups', xticks_ls=xticks, loc=0)
         yticks = np.arange(0.4, 1.11, 0.05)
         plot_metrics_for_all_the_algos('recv-accept-ratio', plot_save_dir, lbl_plot_data_dict_ls, 4, np_group_size,
-                                       color_dict, marker_dict, 'Number of Groups', 'Multicast Joins Acceptance Ratio',
+                                       color_dict, marker_dict, xlabel, 'Multicast Joins Acceptance Ratio',
                                        'Multicast Joins Acceptance Ratio Vs Number of groups', xticks_ls=xticks,
                                        ytick_ls=yticks, loc=0)
         plot_metrics_for_all_the_algos('bw-accept-ratio', plot_save_dir, lbl_plot_data_dict_ls, 5, np_group_size,
-                                       color_dict, marker_dict, 'Number of Groups', 'BW. Demands Acceptance Ratio',
+                                       color_dict, marker_dict, xlabel, 'BW. Demands Acceptance Ratio',
                                        'BW. Demands Acceptance Ratio Vs Number of groups', xticks_ls=xticks,
                                        ytick_ls=yticks, loc=0)
 
@@ -412,6 +428,8 @@ class OtherStatsProcessorWChurn(OtherStatsProcessorWOChurn):
                 lines = [x.strip('\n') for x in f.readlines()]
             bw_accept_map = eval(lines[2].split('=')[1])
             bw_accept_ratio_map = eval(lines[5].split('=')[1])
+            bw_accept_ratio_map = {int(k):float(v) for k,v in bw_accept_ratio_map.items()}
+            bw_accept_map = {int(k):int(v) for k,v in bw_accept_map.items()}
         except Exception as ex:
             print ('Exception in get_other_stats_wo_churn: ' + other_stat_f)
             print (ex)
@@ -581,16 +599,24 @@ if __name__ == "__main__":
         #                           +utils.working_dir+'/qos-multicast-compile/exp3-vabw-25-70-LLDMs/dcbr-10-10,' \
         #                           +utils.working_dir+'/qos-multicast-compile/exp3-vabw-25-70-LLDMs/dcbr-40-10,' \
         #                           +utils.working_dir+'/qos-multicast-compile/exp3-vabw-25-70-LLDMs/dcbr-60-10'
-        wo_churn_congested_sim_dirs = utils.working_dir+'/qos-multicast-compile/simulation/wo-churn-congested-va-bw/dst,' \
-                                      +utils.working_dir+'/qos-multicast-compile/simulation/wo-churn-congested-va-bw/dst-lb,' \
-                                      +utils.working_dir+'/qos-multicast-compile/simulation/wo-churn-congested-va-bw/l2bm-10,' \
-                                      +utils.working_dir+'/qos-multicast-compile/simulation/wo-churn-congested-va-bw/l2bm-40,' \
-                                      +utils.working_dir+'/qos-multicast-compile/simulation/wo-churn-congested-va-bw/l2bm-60'
-        churn_congested_sim_dirs = utils.working_dir+'/qos-multicast-compile/simulation/churn-congested/congested-va-bw-10-100/dst,' \
-                                   +utils.working_dir+'/qos-multicast-compile/simulation/churn-congested/congested-va-bw-10-100/dst-lb,' \
-                                   +utils.working_dir+'/qos-multicast-compile/simulation/churn-congested/congested-va-bw-10-100/l2bm-10'
+        wo_churn_congested_sim_dirs = utils.working_dir+'/wo-churn-congested/dst,' \
+                                      +utils.working_dir+'/wo-churn-congested/dst-lb,' \
+                                      +utils.working_dir+'/wo-churn-congested/l2bm-10,' \
+                                      +utils.working_dir+'/wo-churn-congested/l2bm-20,' \
+                                      +utils.working_dir+'/wo-churn-congested/l2bm-30,' \
+                                      +utils.working_dir+'/wo-churn-congested/l2bm-40,' \
+                                      +utils.working_dir+'/wo-churn-congested/l2bm-50,' \
+                                      +utils.working_dir+'/wo-churn-congested/l2bm-60'
+        churn_congested_sim_dirs = utils.working_dir+'/churn-congested/dst,' \
+                                   +utils.working_dir+'/churn-congested/dst-lb,' \
+                                   +utils.working_dir+'/churn-congested/l2bm-10,' \
+                                   +utils.working_dir+'/churn-congested/l2bm-20,' \
+                                   +utils.working_dir+'/churn-congested/l2bm-30,' \
+                                   +utils.working_dir+'/churn-congested/l2bm-40,' \
+                                   +utils.working_dir+'/churn-congested/l2bm-50,' \
+                                   +utils.working_dir+'/churn-congested/l2bm-60'
 
-        labels = 'DST-PL,DST-LU,L2BM-0.1,L2BM-0.4,L2BM-0.6'
+        labels = 'DST-PL,DST-LU,L2BM-0.1,L2BM-0.2,L2BM-0.3,L2BM-0.4,L2BM-0.5,L2BM-0.6'
         # plot_save_dir = '/home/hsoni/qos-multicast-compile/sim-exp3-vabw-30-70/plots/march-3-2017/'
         # util.mkdir(plot_save_dir)
         # start = 30
@@ -600,35 +626,39 @@ if __name__ == "__main__":
 
     # plot_superimposed_bw_accept_ratio_for_different_groups(simulations_dirs, groups_parent_dirs_grid, plot_save_dir,
     #                                                        labels, start, stop, inter, run_list, color_dict, marker_dict)
-    plot_save_dir = utils.working_dir+'/qos-multicast-compile/simulation/wo-churn-congested-va-bw/plots/'
-    plot_save_dir_c = utils.working_dir+'/qos-multicast-compile/simulation/churn-congested/' \
-                      'churn-congested-va-bw-10-100/plots/'
-    mkdir(plot_save_dir)
+    plot_save_dir = utils.working_dir+'/wo-churn-congested/plots/'
+    plot_save_dir_c = utils.working_dir+'/churn-congested/plots/'
+                      # 'churn-congested-10-100/plots-fig-8-rw-2-2017/'
+    # mkdir(plot_save_dir)
     util.mkdir(plot_save_dir_c)
     osp_wo_c = OtherStatsProcessorWOChurn()
-    osp_w_c = OtherStatsProcessorWChurn()
-    start = 10
-    stop = 100
-    inter = 10
+    # osp_w_c = OtherStatsProcessorWChurn()
+    start = 100
+    stop = 1500
+    inter = 100
     run_list = range(500)
     color_dict = util.get_color_dict(wo_churn_congested_sim_dirs, labels)
     marker_dict = util.get_marker_dict(wo_churn_congested_sim_dirs, labels)
 
     osp_wo_c.plot_other_metrics_for_different_groups(wo_churn_congested_sim_dirs, plot_save_dir, labels, start, stop,
                                                      inter, run_list, color_dict, marker_dict)
+    ### Plot Churn data
     color_dict = util.get_color_dict(churn_congested_sim_dirs, labels)
     marker_dict = util.get_marker_dict(churn_congested_sim_dirs, labels)
-    osp_w_c.plot_other_metrics_for_different_groups(churn_congested_sim_dirs, plot_save_dir_c, labels,start, stop,
-                                                    inter, run_list, color_dict, marker_dict)
-    group = 60
+    # osp_w_c.plot_other_metrics_for_different_groups(churn_congested_sim_dirs, plot_save_dir_c, labels,start, stop,
+    #                                                 inter, run_list, color_dict, marker_dict)
+    group = 90
     runs = range(500)
     churn_congested_sim_dirs_all = \
-        utils.working_dir+'/qos-multicast-compile/simulation/churn-congested/congested-va-bw-10-100/dst,' \
-        +utils.working_dir+'/qos-multicast-compile/simulation/churn-congested/congested-va-bw-10-100/dst-lb,' \
-        +utils.working_dir+'/qos-multicast-compile/simulation/churn-congested/congested-va-bw-10-100/l2bm-10,' \
-        +utils.working_dir+'/qos-multicast-compile/simulation/churn-congested/congested-va-bw-10-100/l2bm-40,' \
-        +utils.working_dir+'/qos-multicast-compile/simulation/churn-congested/congested-va-bw-10-100/l2bm-60'
-    labels = 'DST-PL,DST-LU,L2BM-0.1,L2BM-0.4,L2BM-0.6'
+        utils.working_dir+'/churn-congested/dst,' \
+        +utils.working_dir+'/churn-congested/dst-lb,' \
+        +utils.working_dir+'/churn-congested/l2bm-10,' \
+        +utils.working_dir+'/churn-congested/l2bm-20,' \
+        +utils.working_dir+'/churn-congested/l2bm-30,' \
+        +utils.working_dir+'/churn-congested/l2bm-40,' \
+        +utils.working_dir+'/churn-congested/l2bm-50,' \
+        +utils.working_dir+'/churn-congested/l2bm-60'
+    labels = 'DST-PL,DST-LU,L2BM-0.1,L2BM-0.2,L2BM-0.3,L2BM-0.4,L2BM-0.5,L2BM-0.6'
     color_dict = util.get_color_dict(churn_congested_sim_dirs_all, labels)
     # osp_wo_c.plot_bw_acceptance_bar_graph(wo_churn_congested_sim_dirs, plot_save_dir, labels, group, runs, color_dict)
-    osp_w_c.plot_bw_acceptance_bar_graph(churn_congested_sim_dirs_all, plot_save_dir_c, labels, group, runs, color_dict)
+    # osp_w_c.plot_bw_acceptance_bar_graph(churn_congested_sim_dirs_all, plot_save_dir_c, labels, group, runs, color_dict)

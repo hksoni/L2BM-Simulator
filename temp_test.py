@@ -31,5 +31,11 @@ import sys
 import Utils
 
 if __name__ == "__main__":
-    print Utils.working_dir;
-    print Utils.bw_map_file;
+    # print Utils.working_dir
+    # print Utils.bw_map_file
+    mean_sender_inter_arrival = 0.01
+    no_of_groups = 20000
+    sender_inter_arrival_time = np.random.exponential(mean_sender_inter_arrival, no_of_groups)
+    sender_arrival_time = np.cumsum(sender_inter_arrival_time)
+    print "---sender_arrival_time---"
+    print sender_arrival_time

@@ -29,13 +29,16 @@ import time
 import argparse
 import scipy.stats as ss
 import matplotlib
+matplotlib.use('Agg')
 from Utils import *
 matplotlib.rcParams['ps.useafm'] = True
 matplotlib.rcParams['pdf.use14corefonts'] = True
 import matplotlib.pyplot as plt
+plt.style.use('classic')
 
 
 max_lu_th = 0.90
+link_capacity = 10000.0
 
 def main():
     b = [3, 5, 6, 4]
@@ -58,7 +61,7 @@ def get_link_bw_stats_sim_res(link_stat_f):
             edge_stat = e.split(')=')
             # edge = edge_stat[0].strip('(')
             bw_cons = float(edge_stat[1].strip())
-            edge_consumption.append((float(bw_cons)) / 100.0)
+            edge_consumption.append((float(bw_cons)) / link_capacity)
             np_edge_consumption = np.array(edge_consumption, dtype=float)
     except Exception as ex:
         print ('error in reading file named' + link_stat_f)
@@ -247,22 +250,35 @@ def plot_link_util_metrics_for_different_groups(run_type, links_stat_dirs, plot_
 def plot_average_data_points(lbl_plot_data_dict_ls, plot_save_dir, group_start, group_stop, group_int, color_dict,
                              marker_dict):
     np_group_size = np.arange(int(group_start), int(group_stop) + 1, int(group_int))
-    xticks = np.arange(int(group_start)-10, int(group_stop)+10 + 1, int(group_int))
+    exp = int(np.log10(group_int))
+    if exp == 2:
+        lbl_prefix = "(in hundreds)"
+    elif exp == 3:
+        lbl_prefix = "(in thousands)"
+    elif exp == 4:
+        lbl_prefix = "(in ten thousands)"
+    else:
+        exp = 0
+        lbl_prefix = ''
+    xticks = np.arange(int(group_start)-int(group_int), int(group_stop)+int(group_int)+1, int(group_int))
+    xticks = np.true_divide(xticks, 10**exp)
+    np_group_size = np.true_divide(np_group_size, 10**exp)
+    xlabel = 'Number of Groups'+lbl_prefix
     yticks = np.arange(0.0, 1.06, 0.05)
     loc = 'upper left'
     plot_metrics_for_all_the_algos('avg-lu', plot_save_dir, lbl_plot_data_dict_ls, 0, np_group_size, color_dict,
-                                   marker_dict, 'Number of Groups', 'Avg Link utilization',
+                                   marker_dict, xlabel, 'Avg Link utilization',
                                    'Average link utilization Vs Number of groups', xticks_ls=xticks, ytick_ls=yticks,
                                    loc=loc)
     yticks = np.arange(0.0, 1.06, 0.05)
     plot_metrics_for_all_the_algos('stddev-lu', plot_save_dir, lbl_plot_data_dict_ls, 1, np_group_size, color_dict,
-                                   marker_dict, 'Number of Groups', 'StdDev Link utilization',
+                                   marker_dict, xlabel, 'StdDev Link utilization',
                                    'StdDev link utilization Vs Number of groups', xticks_ls=xticks, ytick_ls=yticks,
                                    loc=loc)
     # loc = 'lower right'
     percent = str(max_lu_th*100)+'%'
     plot_metrics_for_all_the_algos('link-gt-90-lu', plot_save_dir, lbl_plot_data_dict_ls, 2, np_group_size, color_dict,
-                                   marker_dict, 'Number of Groups', '% of links w/ utilization > '+percent,
+                                   marker_dict, xlabel, '% of links w/ utilization > '+percent,
                                    '% of links w/ utilization > '+percent+' Vs Number of groups', xticks_ls=xticks,
                                    loc=loc)
 
@@ -585,21 +601,21 @@ if __name__ == "__main__":
         #                           +utils.working_dir+'/qos-multicast-compile/exp3-vabw-25-70-LLDMs/dcbr-10-10,' \
         #                           +utils.working_dir+'/qos-multicast-compile/exp3-vabw-25-70-LLDMs/dcbr-40-10,' \
         #                           +utils.working_dir+'/qos-multicast-compile/exp3-vabw-25-70-LLDMs/dcbr-60-10'
-        simulations_dirs = utils.working_dir+'/qos-multicast-compile/simulation/wo-churn-congested-va-bw/dst,' \
-                           +utils.working_dir+'/qos-multicast-compile/simulation/wo-churn-congested-va-bw/dst-lb,' \
-                           +utils.working_dir+'/qos-multicast-compile/simulation/wo-churn-congested-va-bw/l2bm-10,' \
-                           +utils.working_dir+'/qos-multicast-compile/simulation/wo-churn-congested-va-bw/l2bm-40,' \
-                           +utils.working_dir+'/qos-multicast-compile/simulation/wo-churn-congested-va-bw/l2bm-60'
-        labels = 'DST-PL,DST-LU,L2BM-0.1,L2BM-0.4,L2BM-0.6'
-        start = 10
-        stop = 100
-        # start = 30
-        # stop = 70
-        inter = 10
+        simulations_dirs = utils.working_dir+'/wo-churn-congested/dst,' \
+                           +utils.working_dir+'/wo-churn-congested/dst-lb,' \
+                           +utils.working_dir+'/wo-churn-congested/l2bm-10,' \
+                           +utils.working_dir+'/wo-churn-congested/l2bm-20,' \
+                           +utils.working_dir+'/wo-churn-congested/l2bm-30,' \
+                           +utils.working_dir+'/wo-churn-congested/l2bm-40,' \
+                           +utils.working_dir+'/wo-churn-congested/l2bm-50,' \
+                           +utils.working_dir+'/wo-churn-congested/l2bm-60'
+        labels = 'DST-PL,DST-LU,L2BM-0.1,L2BM-0.2,L2BM-0.3,L2BM-0.4,L2BM-0.5,L2BM-0.6'
+        start = 100
+        stop = 1500
+        inter = 100
         # run_list = range(1, 21, 1)
         run_list = range(500)
-    plot_save_dir = utils.working_dir+'/qos-multicast-compile/simulation/wo-churn-congested-va-bw/plots/'
-    # plot_save_dir = '/home/hsoni/qos-multicast-compile/sim-exp3-vabw-30-70/plots/march-3-2017/'
+    plot_save_dir = utils.working_dir+'/wo-churn-congested/plots/'
     mkdir(plot_save_dir)
     color_dict = utils.get_color_dict(simulations_dirs, labels)
     marker_dict = utils.get_marker_dict(simulations_dirs, labels)

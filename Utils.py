@@ -29,9 +29,11 @@ import networkx as nx
 import numpy as np
 import sys
 
-working_dir = os.path.expanduser('~')
+working_dir = os.path.expanduser('~/10G/')
+# working_dir = os.path.expanduser('~/tnsm-review-sim/10G/')
 # bw_map_file = '/home/hsoni/qos-multicast-compile/exp3-vabw-25-70-LLDMs/ip-bw-qos-mapping-va.txt'
 bw_map_file = working_dir+'/qos-multicast-compile/exp3-vabw-25-70-LLDMs/ip-bw-qos-mapping-va.txt'
+
 
 def get_color_dict(links_stat_dirs, labels):
     experiment_comp_paths = links_stat_dirs.split(',')
@@ -42,10 +44,10 @@ def get_color_dict(links_stat_dirs, labels):
              # [0.607, 0.505, 0.192], #gold, brown
              # [0.219, 0.552, 0.066], #green
              [0.133, 0.545, 0.133], # green
-             # [0.419, 0.098, 0.882], #purple
+             [0.419, 0.098, 0.882], #purple
              [0.462, 0.368, 0.078], # dark brown
              [0, 0, 1], #blue
-             # [0.054, 0.741, 0.768], #cyan
+             [0.054, 0.741, 0.768], #cyan
              [1, 0, 1], #violet
              [0.690, 0.247, 0.811]] #magenta
     # cList = [[0.862, 0.078, 0.235],
@@ -65,7 +67,7 @@ def get_color_dict(links_stat_dirs, labels):
 def get_marker_dict(links_stat_dirs, labels):
     experiment_comp_paths = links_stat_dirs.split(',')
     ls = labels.split(',')
-    marker = itertools.cycle(('o', 'v', 's','*', 'd'))
+    marker = itertools.cycle(('o', 'v', 's','*', 'd', '<', 'p', '8', '>'))
     marker_dict = {}
     i = 0
     for links_stat_dir, lbl in itertools.izip(experiment_comp_paths, ls):

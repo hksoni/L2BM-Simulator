@@ -33,6 +33,7 @@ import matplotlib
 matplotlib.rcParams['ps.useafm'] = True
 matplotlib.rcParams['pdf.use14corefonts'] = True
 import matplotlib.pyplot as plt
+plt.style.use('classic')
 from Utils import *
 
 def main():
@@ -312,7 +313,7 @@ def plot_link_util_metrics_for_different_groups(links_stat_dirs, plot_save_dir, 
 def plot_average_data_points(lbl_plot_data_dict, plot_save_dir, group_start, group_stop, group_int,
                              color_dict, marker_dict):
     np_group_size = np.arange(int(group_start), int(group_stop) + 1, int(group_int))
-    xticks = np.arange(int(group_start)-10, int(group_stop)+10 + 1, int(group_int))
+    xticks = np.arange(int(group_start)-int(group_int), int(group_stop)+int(group_int)+1, int(group_int))
     yticks = np.arange(0.0, 1.06, 0.05)
     loc = 0
     plot_metrics_for_all_the_algos('avg-lu', plot_save_dir, lbl_plot_data_dict, 0, np_group_size,
@@ -519,30 +520,37 @@ if __name__ == "__main__":
         stop = args.groups_stop
         inter = args.groups_size_int
     else:
-        groups_parent_dirs = '/user/hsoni/home/qos-multicast-compile/simulation/churn-congested/congested-va-bw-10-100/dst,' \
-                             '/user/hsoni/home/qos-multicast-compile/simulation/churn-congested/congested-va-bw-10-100/dst-lb,' \
-                             '/user/hsoni/home/qos-multicast-compile/simulation/churn-congested/congested-va-bw-10-100/l2bm-10,' \
-                             '/user/hsoni/home/qos-multicast-compile/simulation/churn-congested/congested-va-bw-10-100/l2bm-40,' \
-                             '/user/hsoni/home/qos-multicast-compile/simulation/churn-congested/congested-va-bw-10-100/l2bm-60'
+        groups_parent_dirs = working_dir+'/churn-congested/dst,' \
+                             +working_dir+'/churn-congested/dst-lb,' \
+                             +working_dir+'/churn-congested/l2bm-10,' \
+                             +working_dir+'/churn-congested/l2bm-20,' \
+                             +working_dir+'/churn-congested/l2bm-30,' \
+                             +working_dir+'/churn-congested/l2bm-40,' \
+                             +working_dir+'/churn-congested/l2bm-50,' \
+                             +working_dir+'/churn-congested/l2bm-60'
 
-        labels = 'DST-PL,DST-LU,L2BM-0.1,L2BM-0.4,L2BM-0.6'
+        labels = 'DST-PL,DST-LU,L2BM-0.1,L2BM-0.2,L2BM-0.3,L2BM-0.4,L2BM-0.5,L2BM-0.6'
         # labels = 'DST-PL,DST-LU,L2BM-0.1'
         start = 10
-        stop = 100
+        stop = 150
         inter = 10
     # run_list = range(1, 11, 1)
     run_list = range(500)
-    save_plots = '/user/hsoni/home/qos-multicast-compile/simulation/churn-congested/' \
-                 'churn-congested-va-bw-10-100/plots-march-3-2017/'
+    save_plots = working_dir+'/churn-congested/plots/'
     color_dict = get_color_dict(groups_parent_dirs, labels)
     marker_dict = get_marker_dict(groups_parent_dirs, labels)
     mkdir(save_plots)
-    plot_time_sequence_based_metrics(groups_parent_dirs, save_plots, labels, 60, 190, 200, color_dict, marker_dict)
+    # plot_time_sequence_based_metrics(groups_parent_dirs, save_plots, labels, 60, 190, 200, color_dict, marker_dict)
     # labels = 'DST-PL,DST-LU,L2BM-0.1'
-    # groups_parent_dirs = '/user/hsoni/home/qos-multicast-compile/simulation/churn-congested/congested-va-bw-10-100/dst,' \
-    #                      '/user/hsoni/home/qos-multicast-compile/simulation/churn-congested/congested-va-bw-10-100/dst-lb,' \
-    #                      '/user/hsoni/home/qos-multicast-compile/simulation/churn-congested/congested-va-bw-10-100/l2bm-10'
-    # plot_link_util_metrics_for_different_groups(groups_parent_dirs, save_plots, labels, start, stop, inter, run_list,
-    #                                             color_dict, marker_dict)
+    groups_parent_dirs = working_dir+'/churn-congested/dst,' \
+                         +working_dir+'/churn-congested/dst-lb,' \
+                         +working_dir+'/churn-congested/l2bm-10,' \
+                         +working_dir+'/churn-congested/l2bm-20,' \
+                         +working_dir+'/churn-congested/l2bm-30,' \
+                         +working_dir+'/churn-congested/l2bm-40,' \
+                         +working_dir+'/churn-congested/l2bm-50,' \
+                         +working_dir+'/churn-congested/l2bm-60'
+    plot_link_util_metrics_for_different_groups(groups_parent_dirs, save_plots, labels, start, stop, inter, run_list,
+                                                color_dict, marker_dict)
 
 
