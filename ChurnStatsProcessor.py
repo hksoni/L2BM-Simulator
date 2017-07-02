@@ -36,65 +36,22 @@ import matplotlib.pyplot as plt
 plt.style.use('classic')
 from Utils import *
 
-def main():
-    # get_other_stats_wo_churn('/home/hsoni/qos-multicast-compile/simulation/static/const-bw/dst/10/run1/other-results.txt')
-    # get_simulation_data_interval('/user/hsoni/home/qos-multicast-compile/simulation/churn/va-bw/dst/50/', 0)
-    # a = np.zeros(3)
-    # data1 = np.array([10, 0, 90])
-    # data2 = np.array([5, 2, 3])
-    # print data1 * data2
-    # exit()
-    # err = ss.t._ppf((1+0.95)/2, np.subtract(data1, 1))
-    # print err
-    # a = []
-    # a.append([3,4,7])
-    # a.append([3,40,7])
-    # b = [[3,7],[10, 0],[11, 7],[30,0],[60, 50],[10, 10]]
-    # n_a = np.array(a)
-    # n_b = np.array(b)
-    # print n_b
-    # x = np.where(n_b == 0)
-    # print x
-    # print x[1].shape
-    # if x[0].shape[0] != 0 and x[1].shape[0] != 0:
-    #     print x[0][0]
-    # print np.delete(n_b, x[0], 0)
-    # print n_b[:,0,1]
-    # print n_b
-    # a = np.vstack((n_b, a))
-    # print n_a[:,0]
-    # print (np.true_divide(n_a, n_b))
-    c = 2
-    np_arr = np.array([[1,2],[1,1],[3,5],[2,3]])
-    s = np_arr.shape
-    k = s[0]-np.mod(s[0], c)
-    print  np_arr
-    print s[0]
-    x = np_arr[:k].reshape((s[0]/c,c ,s[1]))
-    n_d1 = np.mean(x, axis=1)
-    # n_d2 = np.mean(np_arr[-(s-k):])
-    # n = n_d1.tolist()
-    # n.append(n_d2)
-    print n_d1
-
 
 # [float(r_a), np.mean(np_utils), np.std(np_utils), np.max(np_utils),
 # self.no_links_gt_lu(np_utils, 0.60), self.no_links_gt_lu(np_utils, 0.70),
 # self.no_links_gt_lu(np_utils, 0.80), self.no_links_gt_lu(np_utils, 0.90)]
-def get_simulation_data(links_stat_dir, run, trunc_index=None):
+
+def get_simulation_data(links_stat_dir, run):
     file_name = links_stat_dir+"/run"+ str(run)+"/churn-link-bw-stats.txt"
     # print file_name
     with open(file_name) as f:
         line = [x.strip('\n') for x in f.readlines()][0]
         data = json.loads(line)
-        np_data = np.array(data, dtype=float)
-        np_data[:,4:8] *= 100
-        np_data[:,4:8] /= 102
-        if trunc_index is not None:
-            n_d = np.delete(np_data , trunc_index, 0)
-            return  n_d.tolist()
-        else:
-            return np_data.tolist()
+    np_data = np.array(data, dtype=float, ndmin=2)
+    np_data[:,4:8] *= 100
+    np_data[:,4:8] /= 102
+    # print 'np shape: ', np_data.shape
+    return np_data.tolist()
 
 
 
@@ -213,20 +170,29 @@ def plot_metrics_for_all_the_algos(file_name, dest_dir_loca, lbl_plot_data_dict,
 
 
 
-def get_single_run_lu_metrics(links_stat_dir, run_num):
-    lu_metrics_data = np.array(get_simulation_data(links_stat_dir, run_num), dtype=float)
-    lu_metrics_avg = np.mean(lu_metrics_data, axis=0)
-    return lu_metrics_avg.tolist()
+def get_single_run_lu_metrics(links_stat_dir, run_num, do_mean_stats):
+    data = get_simulation_data(links_stat_dir, run_num)
+    # lu_metrics_data = get_simulation_data(links_stat_dir, run_num)[0]
+    if do_mean_stats:
+        # print 'in mean'
+        lu_metrics_data_np = np.array(data, dtype=float)
+        lu_metrics_mean = np.mean(lu_metrics_data_np, axis=0)
+        lu_metrics_data = lu_metrics_mean.tolist()
+    else:
+        lu_metrics_data = data[0]
+    # print "list len:", len(lu_metrics_data)
+    # exit(0)
+    return lu_metrics_data
 
 
 
 # [float(r_a), np.mean(np_utils), np.std(np_utils), np.max(np_utils),
 # self.no_links_gt_lu(np_utils, 0.60), self.no_links_gt_lu(np_utils, 0.70),
 # self.no_links_gt_lu(np_utils, 0.80), self.no_links_gt_lu(np_utils, 0.90)]
-def get_multi_runs_lu_metrics(links_stat_dir, no_of_runs_dir):
+def get_multi_runs_lu_metrics(links_stat_dir, no_of_runs_dir, do_mean_stats):
     multicast_link_run_metrics = []
     for i in no_of_runs_dir:
-        mean_std_max_link_util = get_single_run_lu_metrics(links_stat_dir, i)
+        mean_std_max_link_util = get_single_run_lu_metrics(links_stat_dir, i, do_mean_stats)
         multicast_link_run_metrics.append(mean_std_max_link_util)
     np_multicast_runs_lu_metrics = np.array(multicast_link_run_metrics, dtype=float)
     avg_lu_dist_data = [np.mean(np_multicast_runs_lu_metrics[:, 1]),
@@ -255,8 +221,8 @@ def get_multi_runs_lu_metrics(links_stat_dir, no_of_runs_dir):
 
 
 
-def link_utils_for_different_groups(links_stat_dirs, plot_save_dir, labels, group_start,
-                                    group_stop, group_int, group_runs):
+def link_utils_for_different_groups(links_stat_dirs, plot_save_dir, labels, group_start, group_stop, group_int,
+                                    group_runs, do_mean_stats):
     experiment_comp_paths = links_stat_dirs.split(',')
     ls = labels.split(',')
     algo_path_dict = {}
@@ -279,7 +245,7 @@ def link_utils_for_different_groups(links_stat_dirs, plot_save_dir, labels, grou
             dir = links_stat_dir + "/" + str(int(gs))
             avg_lu_dist_data, stddev_lu_dist_data, max_lu_dist_data, no_link_gt_60_lu_dist_data, \
             no_link_gt_70_lu_dist_data, no_link_gt_80_lu_dist_data, no_link_gt_90_lu_dist_data \
-                = get_multi_runs_lu_metrics(dir, group_runs)
+                = get_multi_runs_lu_metrics(dir, group_runs, do_mean_stats)
             avg_lu_plot_data.append(avg_lu_dist_data)
             stddev_lu_plot_data.append(stddev_lu_dist_data)
             max_lu_plot_data.append(max_lu_dist_data)
@@ -301,11 +267,11 @@ def link_utils_for_different_groups(links_stat_dirs, plot_save_dir, labels, grou
 
 
 
-def plot_link_util_metrics_for_different_groups(links_stat_dirs, plot_save_dir, labels, group_start,
-                                                group_stop, group_int, group_runs, color_dict, marker_dict):
+def plot_link_util_metrics_for_different_groups(links_stat_dirs, plot_save_dir, labels, group_start, group_stop,
+                                                group_int, group_runs, color_dict, marker_dict, do_mean_stats=True):
 
     lbl_plot_data_dict = link_utils_for_different_groups(links_stat_dirs, plot_save_dir, labels, group_start,
-                                                         group_stop, group_int, group_runs)
+                                                         group_stop, group_int, group_runs, do_mean_stats)
     plot_average_data_points(lbl_plot_data_dict, plot_save_dir, group_start, group_stop, group_int,
                              color_dict, marker_dict)
 
@@ -313,40 +279,53 @@ def plot_link_util_metrics_for_different_groups(links_stat_dirs, plot_save_dir, 
 def plot_average_data_points(lbl_plot_data_dict, plot_save_dir, group_start, group_stop, group_int,
                              color_dict, marker_dict):
     np_group_size = np.arange(int(group_start), int(group_stop) + 1, int(group_int))
+    exp = int(np.log10(group_int))
+    if exp == 2:
+        lbl_prefix = "(in hundreds)"
+    elif exp == 3:
+        lbl_prefix = "(in thousands)"
+    elif exp == 4:
+        lbl_prefix = "(in ten thousands)"
+    else:
+        exp = 0
+        lbl_prefix = ''
     xticks = np.arange(int(group_start)-int(group_int), int(group_stop)+int(group_int)+1, int(group_int))
+    xticks = np.true_divide(xticks, 10**exp)
+    np_group_size = np.true_divide(np_group_size, 10**exp)
+    xlabel = 'Number of Groups'+lbl_prefix
     yticks = np.arange(0.0, 1.06, 0.05)
     loc = 0
     plot_metrics_for_all_the_algos('avg-lu', plot_save_dir, lbl_plot_data_dict, 0, np_group_size,
-                                   color_dict, marker_dict, 'Number of Groups', 'Average Link utilization',
+                                   color_dict, marker_dict, lbl_prefix, 'Average Link utilization',
                                    'Avg. link utilization Vs Number of groups', xticks_ls=xticks,
                                    ytick_ls=yticks, loc=loc)
     yticks = np.arange(0.0, 1.06, 0.05)
     plot_metrics_for_all_the_algos('stddev-lu', plot_save_dir, lbl_plot_data_dict, 1, np_group_size,
-                                   color_dict, marker_dict, 'Number of Groups', 'Standard Deviation of Link utilization',
+                                   color_dict, marker_dict, lbl_prefix, 'Standard Deviation of Link utilization',
                                    'Stddev link utilization Vs Number of groups', xticks_ls=xticks,
                                    ytick_ls=yticks, loc=loc)
     plot_metrics_for_all_the_algos('max-lu', plot_save_dir, lbl_plot_data_dict, 2, np_group_size,
-                                   color_dict, marker_dict, 'Number of Groups', 'Maximum Link utilization',
+                                   color_dict, marker_dict, lbl_prefix, 'Maximum Link utilization',
                                    'Max link utilization Vs Number of groups', xticks_ls=xticks,
                                    ytick_ls=yticks, loc=loc)
     percent = '60%'
     plot_metrics_for_all_the_algos('num-link-gt-60-lu', plot_save_dir, lbl_plot_data_dict, 3, np_group_size,
-                                   color_dict, marker_dict, 'Number of Groups', 'No. of links w/ utilization > '+percent,
+                                   color_dict, marker_dict, lbl_prefix, 'No. of links w/ utilization > '+percent,
                                    'No. of links w/ utilization > '+percent+' Vs Number of groups',
                                    xticks_ls=xticks)
     percent = '70%'
     plot_metrics_for_all_the_algos('num-link-gt-70-lu', plot_save_dir, lbl_plot_data_dict, 4, np_group_size,
-                                   color_dict, marker_dict, 'Number of Groups', 'No. of links w/ utilization > '+percent,
+                                   color_dict, marker_dict, lbl_prefix, 'No. of links w/ utilization > '+percent,
                                    'No. of links w/ utilization > '+percent+' Vs Number of groups',
                                    xticks_ls=xticks)
     percent = '80%'
     plot_metrics_for_all_the_algos('num-link-gt-80-lu', plot_save_dir, lbl_plot_data_dict, 5, np_group_size,
-                                   color_dict, marker_dict, 'Number of Groups', 'No. of links w/ utilization > '+percent,
+                                   color_dict, marker_dict, lbl_prefix, 'No. of links w/ utilization > '+percent,
                                    'No. of links w/ utilization > '+percent+' Vs Number of groups',
                                    xticks_ls=xticks)
     percent = '90%'
     plot_metrics_for_all_the_algos('num-link-gt-90-lu', plot_save_dir, lbl_plot_data_dict, 6, np_group_size,
-                                   color_dict, marker_dict, 'Number of Groups', 'No. of links w/ utilization > '+percent,
+                                   color_dict, marker_dict, lbl_prefix, 'No. of links w/ utilization > '+percent,
                                    'No. of links w/ utilization > '+percent+' Vs Number of groups',
                                    xticks_ls=xticks)
 
@@ -457,7 +436,7 @@ def plot_time_series_metric_for_all_the_algos(file_name, dest_dir_loca, lbl_plot
                                                xticks_ls=None,  y1=None, y2=None, ytick_ls=np.arange(0,100, 5), loc=0):
     plt.clf()
     fig = plt.figure()
-    linestyles = ['-', '', '--', '-.', ':']
+    linestyles = ['-', '', '--', '-.', ':', '-.', ':', '-.']
     markers = ['', '+', '', '', '']
     i = 0
     sorted_order = sorted(lbl_plot_data_dict.keys())
@@ -528,7 +507,7 @@ if __name__ == "__main__":
                              +working_dir+'/churn-congested/l2bm-40,' \
                              +working_dir+'/churn-congested/l2bm-50,' \
                              +working_dir+'/churn-congested/l2bm-60'
-
+        # labels = 'DST-PL,DST-LU,L2BM-0.1,L2BM-0.2,L2BM-0.4,L2BM-0.6'
         labels = 'DST-PL,DST-LU,L2BM-0.1,L2BM-0.2,L2BM-0.3,L2BM-0.4,L2BM-0.5,L2BM-0.6'
         # labels = 'DST-PL,DST-LU,L2BM-0.1'
         start = 10
@@ -536,11 +515,13 @@ if __name__ == "__main__":
         inter = 10
     # run_list = range(1, 11, 1)
     run_list = range(500)
-    save_plots = working_dir+'/churn-congested/plots/'
+    save_plots = working_dir+'/churn-congested/plots-all-thetas/'
     color_dict = get_color_dict(groups_parent_dirs, labels)
     marker_dict = get_marker_dict(groups_parent_dirs, labels)
     mkdir(save_plots)
-    # plot_time_sequence_based_metrics(groups_parent_dirs, save_plots, labels, 60, 190, 200, color_dict, marker_dict)
+    plot_time_sequence_based_metrics(groups_parent_dirs, save_plots, labels, 130, 190, 200, color_dict, marker_dict)
+    plot_time_sequence_based_metrics(groups_parent_dirs, save_plots, labels, 130, 200, 200, color_dict, marker_dict)
+    plot_time_sequence_based_metrics(groups_parent_dirs, save_plots, labels, 130, 10, 200, color_dict, marker_dict)
     # labels = 'DST-PL,DST-LU,L2BM-0.1'
     groups_parent_dirs = working_dir+'/churn-congested/dst,' \
                          +working_dir+'/churn-congested/dst-lb,' \
@@ -550,7 +531,8 @@ if __name__ == "__main__":
                          +working_dir+'/churn-congested/l2bm-40,' \
                          +working_dir+'/churn-congested/l2bm-50,' \
                          +working_dir+'/churn-congested/l2bm-60'
+    do_mean_stats = True
     plot_link_util_metrics_for_different_groups(groups_parent_dirs, save_plots, labels, start, stop, inter, run_list,
-                                                color_dict, marker_dict)
+                                                color_dict, marker_dict, do_mean_stats)
 
 

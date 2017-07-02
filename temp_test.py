@@ -22,13 +22,33 @@
 # author: hardik soni <hardik.soni@inria.fr>
 
 #!/usr/bin/python
-import os
-import errno
-import itertools
-import networkx as nx
-import numpy as np
-import sys
-import Utils
+import json
+import matplotlib
+matplotlib.use('Agg')
+
+import scipy.stats as ss
+import matplotlib
+matplotlib.rcParams['ps.useafm'] = True
+matplotlib.rcParams['pdf.use14corefonts'] = True
+import matplotlib.pyplot as plt
+plt.style.use('classic')
+from Utils import *
+
+
+# def get_simulation_data(file_name, trunc_index=None):
+#     # print file_name
+#     with open(file_name) as f:
+#         line = [x.strip('\n') for x in f.readlines()][0]
+#         data = json.loads(line)
+#         np_data = np.array(data, dtype=float)
+#         np_data[:,4:8] *= 100
+#         np_data[:,4:8] /= 102
+#         if trunc_index is not None:
+#             n_d = np.delete(np_data , trunc_index, 0)
+#             return  n_d.tolist()
+#         else:
+#             return np_data.tolist()
+
 
 if __name__ == "__main__":
     # print Utils.working_dir
@@ -39,3 +59,6 @@ if __name__ == "__main__":
     sender_arrival_time = np.cumsum(sender_inter_arrival_time)
     print "---sender_arrival_time---"
     print sender_arrival_time
+
+
+

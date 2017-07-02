@@ -45,7 +45,7 @@ import os.path
 node_list_g = ['parasilo-3', 'parasilo-2']
 
 start_run = 0
-end_run = 500
+end_run = 100
 
 
 def get_node_list_from_file(node_list_file):
@@ -72,7 +72,7 @@ def main(id, node_list_file):
         node_end += runs_per_node
         std_out_log_file = id+"-"+str(node)+"-"+str(node_start)+'-'+str(node_end)+".out"
         python_cmd = '  python ~/multicast-qos-python-may-2016/RunMulticastTestWithChurn.py ' +\
-                     '--network_dot ~/internet2-al2s-10G.dot '+\
+                     '--network_dot ~/internet2-al2s-100G.dot '+\
                      '--run_start_num '+str(node_start)+\
                      ' --run_stop_num '+str(node_end)+\
                     ' > '+std_out_log_file
@@ -84,9 +84,9 @@ def main(id, node_list_file):
         process_dict[node] = (std_out_log_file, process)
         process_list.append(process)
     while ret is False:
+        time.sleep(120)
         for node, vals in process_dict.iteritems():
             # print node, vals
-            time.sleep(2)
             if  not process_list:
                 print 'process list empty'
                 ret = True

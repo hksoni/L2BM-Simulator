@@ -38,7 +38,7 @@ plt.style.use('classic')
 
 
 max_lu_th = 0.90
-link_capacity = 10000.0
+link_capacity = 100000.0
 
 def main():
     b = [3, 5, 6, 4]
@@ -610,17 +610,18 @@ if __name__ == "__main__":
                            +utils.working_dir+'/wo-churn-congested/l2bm-50,' \
                            +utils.working_dir+'/wo-churn-congested/l2bm-60'
         labels = 'DST-PL,DST-LU,L2BM-0.1,L2BM-0.2,L2BM-0.3,L2BM-0.4,L2BM-0.5,L2BM-0.6'
-        start = 100
-        stop = 1500
-        inter = 100
+        # labels = 'DST-PL,DST-LU,L2BM-0.1,L2BM-0.2,L2BM-0.4,L2BM-0.6'
+        start = 1000
+        stop = 15000
+        inter = 1000
         # run_list = range(1, 21, 1)
         run_list = range(500)
     plot_save_dir = utils.working_dir+'/wo-churn-congested/plots/'
     mkdir(plot_save_dir)
     color_dict = utils.get_color_dict(simulations_dirs, labels)
     marker_dict = utils.get_marker_dict(simulations_dirs, labels)
-    color = plot_link_util_metrics_for_different_groups('sim', simulations_dirs, plot_save_dir, labels,
-                                                        start, stop, inter, run_list, color_dict, marker_dict)
+    color = plot_link_util_metrics_for_different_groups('sim', simulations_dirs, plot_save_dir, labels, start, stop,
+                                                        inter, run_list, color_dict, marker_dict)
     # plot_superimposed_datapoints_for_different_groups(groups_parent_dirs_sim, groups_parent_dirs_grid,
     #                                                   plot_save_dir, labels, start, stop, inter, run_list,
     #                                                   color_dict, marker_dict)

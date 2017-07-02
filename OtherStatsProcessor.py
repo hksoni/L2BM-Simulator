@@ -337,7 +337,7 @@ class OtherStatsProcessorWOChurn(object):
         if yticks is not None:
             ax.set_yticks(yticks)
         ax.set_xticklabels(keys)
-        legends = ax.legend(rects_ls, labels, ncol=3, frameon=False, loc=0)
+        legends = ax.legend(rects_ls, labels, ncol=4, frameon=False, loc=0, prop={'size':10})
 
         def autolabel(rects):
             # attach some text labels
@@ -607,6 +607,7 @@ if __name__ == "__main__":
                                       +utils.working_dir+'/wo-churn-congested/l2bm-40,' \
                                       +utils.working_dir+'/wo-churn-congested/l2bm-50,' \
                                       +utils.working_dir+'/wo-churn-congested/l2bm-60'
+
         churn_congested_sim_dirs = utils.working_dir+'/churn-congested/dst,' \
                                    +utils.working_dir+'/churn-congested/dst-lb,' \
                                    +utils.working_dir+'/churn-congested/l2bm-10,' \
@@ -616,7 +617,9 @@ if __name__ == "__main__":
                                    +utils.working_dir+'/churn-congested/l2bm-50,' \
                                    +utils.working_dir+'/churn-congested/l2bm-60'
 
+
         labels = 'DST-PL,DST-LU,L2BM-0.1,L2BM-0.2,L2BM-0.3,L2BM-0.4,L2BM-0.5,L2BM-0.6'
+        # labels = 'DST-PL,DST-LU,L2BM-0.1,L2BM-0.2,L2BM-0.4,L2BM-0.6'
         # plot_save_dir = '/home/hsoni/qos-multicast-compile/sim-exp3-vabw-30-70/plots/march-3-2017/'
         # util.mkdir(plot_save_dir)
         # start = 30
@@ -627,27 +630,27 @@ if __name__ == "__main__":
     # plot_superimposed_bw_accept_ratio_for_different_groups(simulations_dirs, groups_parent_dirs_grid, plot_save_dir,
     #                                                        labels, start, stop, inter, run_list, color_dict, marker_dict)
     plot_save_dir = utils.working_dir+'/wo-churn-congested/plots/'
-    plot_save_dir_c = utils.working_dir+'/churn-congested/plots/'
+    plot_save_dir_c = utils.working_dir+'/churn-congested/plots-all-thetas/'
                       # 'churn-congested-10-100/plots-fig-8-rw-2-2017/'
     # mkdir(plot_save_dir)
     util.mkdir(plot_save_dir_c)
     osp_wo_c = OtherStatsProcessorWOChurn()
-    # osp_w_c = OtherStatsProcessorWChurn()
-    start = 100
-    stop = 1500
-    inter = 100
+    osp_w_c = OtherStatsProcessorWChurn()
+    start = 10
+    stop = 150
+    inter = 10
     run_list = range(500)
     color_dict = util.get_color_dict(wo_churn_congested_sim_dirs, labels)
     marker_dict = util.get_marker_dict(wo_churn_congested_sim_dirs, labels)
 
-    osp_wo_c.plot_other_metrics_for_different_groups(wo_churn_congested_sim_dirs, plot_save_dir, labels, start, stop,
-                                                     inter, run_list, color_dict, marker_dict)
+    # osp_wo_c.plot_other_metrics_for_different_groups(wo_churn_congested_sim_dirs, plot_save_dir, labels, start, stop,
+    #                                                  inter, run_list, color_dict, marker_dict)
     ### Plot Churn data
     color_dict = util.get_color_dict(churn_congested_sim_dirs, labels)
     marker_dict = util.get_marker_dict(churn_congested_sim_dirs, labels)
-    # osp_w_c.plot_other_metrics_for_different_groups(churn_congested_sim_dirs, plot_save_dir_c, labels,start, stop,
-    #                                                 inter, run_list, color_dict, marker_dict)
-    group = 90
+    osp_w_c.plot_other_metrics_for_different_groups(churn_congested_sim_dirs, plot_save_dir_c, labels,start, stop,
+                                                    inter, run_list, color_dict, marker_dict)
+    group = 130
     runs = range(500)
     churn_congested_sim_dirs_all = \
         utils.working_dir+'/churn-congested/dst,' \
@@ -659,6 +662,7 @@ if __name__ == "__main__":
         +utils.working_dir+'/churn-congested/l2bm-50,' \
         +utils.working_dir+'/churn-congested/l2bm-60'
     labels = 'DST-PL,DST-LU,L2BM-0.1,L2BM-0.2,L2BM-0.3,L2BM-0.4,L2BM-0.5,L2BM-0.6'
+    # labels = 'DST-PL,DST-LU,L2BM-0.1,L2BM-0.2,L2BM-0.4,L2BM-0.6'
     color_dict = util.get_color_dict(churn_congested_sim_dirs_all, labels)
     # osp_wo_c.plot_bw_acceptance_bar_graph(wo_churn_congested_sim_dirs, plot_save_dir, labels, group, runs, color_dict)
-    # osp_w_c.plot_bw_acceptance_bar_graph(churn_congested_sim_dirs_all, plot_save_dir_c, labels, group, runs, color_dict)
+    osp_w_c.plot_bw_acceptance_bar_graph(churn_congested_sim_dirs_all, plot_save_dir_c, labels, group, runs, color_dict)

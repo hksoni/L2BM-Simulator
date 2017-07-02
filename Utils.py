@@ -29,7 +29,8 @@ import networkx as nx
 import numpy as np
 import sys
 
-working_dir = os.path.expanduser('~/10G/')
+working_dir = os.path.expanduser('~/1G/')
+# working_dir = os.path.expanduser('/data/10G/')
 # working_dir = os.path.expanduser('~/tnsm-review-sim/10G/')
 # bw_map_file = '/home/hsoni/qos-multicast-compile/exp3-vabw-25-70-LLDMs/ip-bw-qos-mapping-va.txt'
 bw_map_file = working_dir+'/qos-multicast-compile/exp3-vabw-25-70-LLDMs/ip-bw-qos-mapping-va.txt'
@@ -39,17 +40,18 @@ def get_color_dict(links_stat_dirs, labels):
     experiment_comp_paths = links_stat_dirs.split(',')
     ls = labels.split(',')
     cList = [
-             # [0.796, 0.023, 0.023], #red
-             [1, 0, 0], #red
-             # [0.607, 0.505, 0.192], #gold, brown
-             # [0.219, 0.552, 0.066], #green
-             [0.133, 0.545, 0.133], # green
-             [0.419, 0.098, 0.882], #purple
-             [0.462, 0.368, 0.078], # dark brown
-             [0, 0, 1], #blue
-             [0.054, 0.741, 0.768], #cyan
-             [1, 0, 1], #violet
-             [0.690, 0.247, 0.811]] #magenta
+        [1, 0, 0], #red
+        # [0.796, 0.023, 0.023], #red
+        # [0.607, 0.505, 0.192], #gold, brown
+        [0.219, 0.552, 0.066], #green
+        # [0.133, 0.545, 0.133], # green
+        [0.462, 0.368, 0.078], # dark brown
+        [0, 0, 1], #blue
+        [0.054, 0.741, 0.768], #cyan
+        [1, 0, 1], #violet
+        [0.419, 0.098, 0.882], #purple
+        [0.690, 0.247, 0.811] #magenta
+    ]
     # cList = [[0.862, 0.078, 0.235],
     #          [1, 0.549, 0],
     #          # [1, 0.549, 0],

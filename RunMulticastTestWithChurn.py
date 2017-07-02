@@ -27,6 +27,7 @@ from datetime import time
 
 import multiprocessing
 import json
+import os
 from DynamicSteinerTree import *
 from DynamicSteinerTreeLB import *
 from L2BM import *
@@ -36,16 +37,17 @@ from Heap import *
 import  copy
 
 
-def main_fn(network_g, group_numbers, run_start, run_stop):
+def main_fn(network_g, group_numbers, run_start, run_stop, mean_run_stats=False):
     'Number of multicast groups'
     parallel_runs = 4
     runs = range(int(run_start), int(run_stop), 1)
     group_numbers_list = group_numbers.split(',')
     bandwidths = [1, 2, 5, 9, 12, 25, 50, 80]
-    mean_sender_inter_arrival = 0.1
+    mean_sender_inter_arrival = 0.001
     mean_receiver_inter_arrival = 5
     mean_reception_duration = 75.0
-    link_eliminate_bw_filter_value = '100000'
+    run_scheds = True
+    link_eliminate_bw_filter_value = '1000000'
     theta_inits = [10, 20, 30, 40, 50, 60]
     candidate_nodes_data = filter(lambda (n, d): d['type'] == 'switch', network_g.nodes(data=True))
     candidate_nodes = [i[0] for i in candidate_nodes_data]
@@ -53,7 +55,6 @@ def main_fn(network_g, group_numbers, run_start, run_stop):
     # save_results_path = '/root/churn/congested-va-bw-10-100'
     save_results_path = utils.working_dir+'/churn-congested/'
     sched_path = utils.working_dir+'/churn-congested/'
-    run_scheds = True
     th_list = []
     for num_groups in group_numbers_list:
         no_of_groups = int(num_groups)
@@ -62,12 +63,14 @@ def main_fn(network_g, group_numbers, run_start, run_stop):
             sched_file_path = None
             if run_scheds:
                 sched_file_path = sched_path+str(no_of_groups)+'-run'+str(run_num)
+                if os.path.isfile(sched_file_path) is False:
+                    sched_file_path = None
             group_bandwidths = np.random.choice(bandwidths, no_of_groups, replace=True)
             candidate_nodes_t = copy.deepcopy(candidate_nodes)
             t = multiprocessing.Process(target=execute_run, args=(
-                network_g.copy(), link_eliminate_bw_filter_value, no_of_groups, theta_inits, mean_sender_inter_arrival, mean_receiver_inter_arrival,
-                mean_reception_duration, candidate_nodes_t, group_bandwidths, run_num,
-                save_results_path, sched_file_path))
+                network_g.copy(), link_eliminate_bw_filter_value, no_of_groups, theta_inits, mean_sender_inter_arrival,
+                mean_receiver_inter_arrival, mean_reception_duration, candidate_nodes_t, group_bandwidths, run_num,
+                save_results_path, mean_run_stats, sched_file_path))
             th_list.append(t)
             t.start()
             if len(th_list) == parallel_runs:
@@ -78,7 +81,7 @@ def main_fn(network_g, group_numbers, run_start, run_stop):
 
 def execute_run(network_graph, link_eliminate_bw_filter_value, no_of_groups, theta_inits, mean_sender_inter_arrival,
                 mean_receiver_inter_arrival, mean_reception_duration, candidate_nodes, group_bandwidths, run_number,
-                result_path, sched_file_path=None):
+                result_path, mean_run_stats, sched_file_path=None):
     events_list = None
     if sched_file_path is None:
         events_list, tree_objls_ls = create_sched_heap_congested(
@@ -96,7 +99,7 @@ def execute_run(network_graph, link_eliminate_bw_filter_value, no_of_groups, the
         nw_g= network_graph.copy()
         # print algo_names
         algo_exec_th_obj = AlgoExecThread(al, nw_g, link_eliminate_bw_filter_value, events_list, tree_objls,
-                                          result_path, no_of_groups, run_number)
+                                          result_path, no_of_groups, run_number, mean_run_stats)
         algo_exec_th_obj.start()
         tree_thread_obj_ls.append(algo_exec_th_obj)
     for th_obj in tree_thread_obj_ls:
@@ -275,11 +278,14 @@ if __name__ == "__main__":
     if args.network_dot is None:
         args.network_dot = utils.working_dir+"/internet2-al2s.dot"
     if args.numbers_groups  is None:
-        num_groups = '100,200,300,400,500,600,700,800,900,1000,1100,1200,1300,1400,1500'
+        # num_groups = '100,200,300,400,500,600,700,800,900,1000,1100,1200,1300,1400,1500,1600,1700,1800,1900,2000'
+        num_groups = '5000,6000,7000,8000,9000,10000,11000,12000,13000,14000,15000,16000,' \
+                     '17000,18000,19000,20000'
     run_start = args.run_start_num
     run_stop = args.run_stop_num
     if args.run_start_num is None or args.run_stop_num is None:
         run_start = 0
-        run_stop = 500
+        run_stop = 1
     network_g = nx.read_dot(args.network_dot)
-    main_fn(network_g, num_groups, run_start, run_stop)
+    mean_run_stats = True
+    main_fn(network_g, num_groups, run_start, run_stop, mean_run_stats)

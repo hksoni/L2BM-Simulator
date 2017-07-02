@@ -108,11 +108,12 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--exp_id", help="experiment_id_tag")
     parser.add_argument("--node_list_file", help="nodes")
+    parser.add_argument("--cmd", help="cmd")
     parser.add_argument("--node_cmd_list_file", help="nodes")
     args = parser.parse_args()
     if args.exp_id is None:
         args.exp_id = str(np.random.randint(0, 1000,1))
     if args.node_list_file is not None:
-        main(args.exp_id, args.node_list_file, cmd)
+        main(args.exp_id, args.node_list_file, args.cmd)
     elif args.node_cmd_list_file is not None:
         main_node_cmd_list(id, args.node_cmd_list_file)

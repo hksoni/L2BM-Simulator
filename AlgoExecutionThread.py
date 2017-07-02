@@ -34,7 +34,8 @@ from multiprocessing.pool import ThreadPool
 
 class AlgoExecutionThread(Process):
 
-    def __init__(self, algo_n, nw_g, link_eliminate_bw_filter_value, e_l, tree_objs, re_path, no_of_g, run_num):
+    def __init__(self, algo_n, nw_g, link_eliminate_bw_filter_value, e_l, tree_objs, re_path, no_of_g, run_num,
+                 do_avg_util):
         self.algo_name = algo_n
         self.n_g= nw_g
         self.host_link_filter= link_eliminate_bw_filter_value
@@ -49,6 +50,7 @@ class AlgoExecutionThread(Process):
         self.no_of_groups = no_of_g
         self.run_number = run_num
         self.result_path = re_path
+        self.do_avg_utils = do_avg_util
         super(AlgoExecutionThread, self).__init__()
 
 
@@ -106,10 +108,14 @@ class AlgoExecutionThread(Process):
                                           self.no_links_gt_lu(np_utils, 0.80),
                                           self.no_links_gt_lu(np_utils, 0.90)])
         # log_str_file.close()
-        for bw, num in total_bw_request_map.iteritems():
-            bw_accept_map_ratio[str(bw)] = str(float(bw_accept_map[str(bw)]) / float(num))
+        if self.do_avg_utils:
+            lu_metrics_np = np.array(self.link_stats_churn, dtype=float)
+            lu_mean_metrics_np = np.mean(lu_metrics_np, axis=0)
+            self.link_stats_churn = lu_mean_metrics_np.tolist()
         with open(r_p+'/churn-link-bw-stats.txt',"w") as link_stat_file:
             link_stat_file.writelines(json.dumps(self.link_stats_churn))
+        for bw, num in total_bw_request_map.iteritems():
+            bw_accept_map_ratio[str(bw)] = str(float(bw_accept_map[str(bw)]) / float(num))
         with open(r_p+'/churn-other-results.txt',"w") as results_file:
             results_file.writelines("receiver-requests-accept=" + str(self.receiver_accept) + '\n')
             results_file.writelines("bandwidth-accept=" + str(self.bw_accept) + '\n')
