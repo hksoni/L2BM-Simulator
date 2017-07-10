@@ -23,7 +23,6 @@
 
 # !/usr/bin/python
 import json
-import sys
 import  Heap
 import argparse
 import matplotlib
@@ -31,7 +30,6 @@ matplotlib.use('Agg')
 from Utils import *
 matplotlib.rcParams['ps.useafm'] = True
 matplotlib.rcParams['pdf.use14corefonts'] = True
-# matplotlib.rcParams['text.usetex'] = True
 import scipy.stats as ss
 import numpy as np
 import Utils  as util
@@ -225,12 +223,12 @@ class OtherStatsProcessorWOChurn(object):
         plot_metrics_for_all_the_algos('bw-accept', plot_save_dir, lbl_plot_data_dict_ls, 1, np_group_size, color_dict,
                                        marker_dict, xlabel, 'Bandwidth Demands',
                                        'Bandwidth Demands Vs Number of groups', xticks_ls=xticks, loc=0)
-        plot_metrics_for_all_the_algos('total-branch-nodes', plot_save_dir, lbl_plot_data_dict_ls, 2, np_group_size,
-                                       color_dict, marker_dict, xlabel, 'Total Branch Nodes',
-                                       'Total Branch Nodes Vs Number of groups', xticks_ls=xticks, loc=0)
-        plot_metrics_for_all_the_algos('total-tree-nodes', plot_save_dir, lbl_plot_data_dict_ls, 3, np_group_size,
-                                       color_dict, marker_dict, xlabel, 'Total Tree Nodes',
-                                       'Total Tree Nodes Vs Number of groups', xticks_ls=xticks, loc=0)
+        # plot_metrics_for_all_the_algos('total-branch-nodes', plot_save_dir, lbl_plot_data_dict_ls, 2, np_group_size,
+        #                                color_dict, marker_dict, xlabel, 'Total Branch Nodes',
+        #                                'Total Branch Nodes Vs Number of groups', xticks_ls=xticks, loc=0)
+        # plot_metrics_for_all_the_algos('total-tree-nodes', plot_save_dir, lbl_plot_data_dict_ls, 3, np_group_size,
+        #                                color_dict, marker_dict, xlabel, 'Total Tree Nodes',
+        #                                'Total Tree Nodes Vs Number of groups', xticks_ls=xticks, loc=0)
         yticks = np.arange(0.4, 1.11, 0.05)
         plot_metrics_for_all_the_algos('recv-accept-ratio', plot_save_dir, lbl_plot_data_dict_ls, 4, np_group_size,
                                        color_dict, marker_dict, xlabel, 'Multicast Joins Acceptance Ratio',
@@ -254,10 +252,10 @@ class OtherStatsProcessorWOChurn(object):
     def plot_bw_acceptance_bar_graph(self, links_stat_dirs, plot_save_dir, labels, group, group_runs, color_dict):
         lbl_plot_data_dict = self.get_bw_acceptance_bar_graph_data(links_stat_dirs, labels, group, group_runs)
         # file_name = 'bw-accept-'+str(group)
-        title = 'Accepatance Ratios for different BW. Demands'
+        title = 'Acceptance Ratios for different BW. Demands'
         # self.plot_bw_accept_bar_for_all_the_algos(file_name, plot_save_dir, lbl_plot_data_dict, 0, color_dict, ylabel)
         file_name = 'bw-accept-ratio-'+str(group)
-        ylabel = 'Join Request Accepatance Ratio'
+        ylabel = 'Join Request Acceptance Ratio'
         yticks = np.arange(0.0, 1.3, 0.1)
         self.plot_bw_accept_bar_for_all_the_algos(file_name, plot_save_dir, lbl_plot_data_dict, 1, color_dict,
                                                   title, ylabel, yticks=yticks)

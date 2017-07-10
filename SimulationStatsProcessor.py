@@ -30,7 +30,6 @@ import argparse
 import scipy.stats as ss
 import matplotlib
 matplotlib.use('Agg')
-from Utils import *
 matplotlib.rcParams['ps.useafm'] = True
 matplotlib.rcParams['pdf.use14corefonts'] = True
 import matplotlib.pyplot as plt
