@@ -124,7 +124,7 @@ def get_other_data(links_stat_dir,  run):
 
 def plot_metrics_for_all_the_algos(file_name, dest_dir_loca, lbl_plot_data_dict, metrics_index,
                                    np_group_size, color_dict, marker_dict, xlable, ylable, title, x1=None, x2=None,
-                                   xticks_ls=np.arange(40, 111, 10),  y1=None, y2=None, ytick_ls=None,
+                                   xticks_ls=np.arange(40, 111, 10),  y1=None, y2=None, ytick_ls=None, ytick_lbl_ls=None,
                                    loc=0):
     plt.clf()
     fig = plt.figure()
@@ -155,7 +155,9 @@ def plot_metrics_for_all_the_algos(file_name, dest_dir_loca, lbl_plot_data_dict,
             plt.xlim(x1,x2)
         else:
             ''
-        if ytick_ls is not None:
+        if ytick_ls is not None and ytick_lbl_ls is not None:
+            plt.yticks(ytick_ls, ytick_lbl_ls)
+        elif ytick_ls is not None:
             plt.yticks(ytick_ls)
         elif y1 is not None and y2 is not  None:
             plt.ylim(y1,y2)
@@ -293,41 +295,44 @@ def plot_average_data_points(lbl_plot_data_dict, plot_save_dir, group_start, gro
     xticks = np.true_divide(xticks, 10**exp)
     np_group_size = np.true_divide(np_group_size, 10**exp)
     xlabel = 'Number of Groups'+lbl_prefix
-    yticks = np.arange(0.0, 1.06, 0.05)
+    yticks_np = np.arange(0.0, 1.01, 0.05)
     loc = 0
     plot_metrics_for_all_the_algos('avg-lu', plot_save_dir, lbl_plot_data_dict, 0, np_group_size,
                                    color_dict, marker_dict, lbl_prefix, 'Average Link utilization',
                                    'Avg. link utilization Vs Number of groups', xticks_ls=xticks,
-                                   ytick_ls=yticks, loc=loc)
-    yticks = np.arange(0.0, 1.06, 0.05)
+                                   ytick_ls=yticks_np, loc=loc)
+    yticks_np = np.arange(0.0, 1.01, 0.05)
     plot_metrics_for_all_the_algos('stddev-lu', plot_save_dir, lbl_plot_data_dict, 1, np_group_size,
                                    color_dict, marker_dict, lbl_prefix, 'Standard Deviation of Link utilization',
                                    'Stddev link utilization Vs Number of groups', xticks_ls=xticks,
-                                   ytick_ls=yticks, loc=loc)
+                                   ytick_ls=yticks_np, loc=loc)
     plot_metrics_for_all_the_algos('max-lu', plot_save_dir, lbl_plot_data_dict, 2, np_group_size,
                                    color_dict, marker_dict, lbl_prefix, 'Maximum Link utilization',
                                    'Max link utilization Vs Number of groups', xticks_ls=xticks,
-                                   ytick_ls=yticks, loc=loc)
+                                   ytick_ls=yticks_np, loc=loc)
+    yticks_np = np.arange(-5, 35, 5)
+    yticks = map(str, yticks_np)
+    yticks.pop(0)
+    yticks.insert(0, '')
     percent = '60%'
     plot_metrics_for_all_the_algos('num-link-gt-60-lu', plot_save_dir, lbl_plot_data_dict, 3, np_group_size,
                                    color_dict, marker_dict, lbl_prefix, 'No. of links w/ utilization > '+percent,
                                    'No. of links w/ utilization > '+percent+' Vs Number of groups',
-                                   xticks_ls=xticks)
+                                   xticks_ls=xticks, ytick_ls=yticks_np, ytick_lbl_ls=yticks)
     percent = '70%'
     plot_metrics_for_all_the_algos('num-link-gt-70-lu', plot_save_dir, lbl_plot_data_dict, 4, np_group_size,
                                    color_dict, marker_dict, lbl_prefix, 'No. of links w/ utilization > '+percent,
                                    'No. of links w/ utilization > '+percent+' Vs Number of groups',
-                                   xticks_ls=xticks)
+                                   xticks_ls=xticks, ytick_ls=yticks_np, ytick_lbl_ls=yticks)
     percent = '80%'
     plot_metrics_for_all_the_algos('num-link-gt-80-lu', plot_save_dir, lbl_plot_data_dict, 5, np_group_size,
                                    color_dict, marker_dict, lbl_prefix, 'No. of links w/ utilization > '+percent,
                                    'No. of links w/ utilization > '+percent+' Vs Number of groups',
-                                   xticks_ls=xticks)
+                                   xticks_ls=xticks, ytick_ls=yticks_np, ytick_lbl_ls=yticks)
     percent = '90%'
     plot_metrics_for_all_the_algos('num-link-gt-90-lu', plot_save_dir, lbl_plot_data_dict, 6, np_group_size,
-                                   color_dict, marker_dict, lbl_prefix, 'No. of links w/ utilization > '+percent,
-                                   'No. of links w/ utilization > '+percent+' Vs Number of groups',
-                                   xticks_ls=xticks)
+                                   color_dict, marker_dict, lbl_prefix, '% Critical links',
+                                   '% Critical links Vs Number of groups', xticks_ls=xticks, ytick_ls=yticks_np, ytick_lbl_ls=yticks)
 
 
 
@@ -380,21 +385,21 @@ def plot_time_sequence_based_metrics(links_stat_dirs, plot_save_dir, labels, gro
         alg_group_run_metrics_dict[lbl] = np.array(samples, dtype=float)
 
     xlable = 'Time'
-    yticks = np.arange(0.0, 1.15, 0.1)
+    yticks = np.arange(0.0, 1.01, 0.1)
     file_name = str(group_num)+'run'+str(run_num)+'churn-avg-lu'
     metric_index = 1
     ylable = 'Avg. Link utilization'
     title = 'Average link utilization Vs Time'
     plot_time_series_metric_for_all_the_algos(file_name, plot_save_dir, alg_group_run_metrics_dict, 0, metric_index,
                                               color_dict, marker_dict, xlable, ylable, title, ytick_ls=yticks)
-    yticks = np.arange(0.0, 1.15, 0.1)
+    yticks = np.arange(0.0, 1.01, 0.1)
     file_name = str(group_num)+'run'+str(run_num)+'churn-stddev-lu'
     metric_index = 2
     ylable = 'StdDev. Link utilization'
     title = 'StdDev link utilization Vs Time'
     plot_time_series_metric_for_all_the_algos(file_name, plot_save_dir, alg_group_run_metrics_dict, 0, metric_index,
                                               color_dict, marker_dict, xlable, ylable, title, ytick_ls=yticks)
-    yticks = np.arange(0.0, 1.15, 0.1)
+    yticks = np.arange(0.0, 1.01, 0.1)
     file_name = str(group_num)+'run'+str(run_num)+'churn-max-lu'
     metric_index = 3
     ylable = 'Max. Link utilization'
@@ -405,7 +410,7 @@ def plot_time_sequence_based_metrics(links_stat_dirs, plot_save_dir, labels, gro
     metric_index = 4
     ylable = '% of links w/ utilization > 0.6'
     title = ylable+ ' Vs '+ xlable
-    yticks = np.arange(0, 66, 5)
+    yticks = np.arange(0, 56, 5)
     # yticks = None
     plot_time_series_metric_for_all_the_algos(file_name, plot_save_dir, alg_group_run_metrics_dict, 0, metric_index,
                                               color_dict, marker_dict, xlable, ylable, title, ytick_ls=yticks)
@@ -423,7 +428,7 @@ def plot_time_sequence_based_metrics(links_stat_dirs, plot_save_dir, labels, gro
                                               color_dict, marker_dict, xlable, ylable, title, ytick_ls=yticks)
     file_name = str(group_num)+'run'+str(run_num)+'churn-no-link-gt-90-lu'
     metric_index = 7
-    ylable = '% of links w/ utilization > 0.9'
+    ylable = '% Critical links'
     title = ylable+ ' Vs '+ xlable
     plot_time_series_metric_for_all_the_algos(file_name, plot_save_dir, alg_group_run_metrics_dict, 0, metric_index,
                                               color_dict, marker_dict, xlable, ylable, title, ytick_ls=yticks)

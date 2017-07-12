@@ -60,17 +60,16 @@ if __name__ == "__main__":
         run_list = range(1, 21, 1)
         plot_save_dir_c = args.plot_save_dir
     else:
+        utils.working_dir = os.path.expanduser("/run/media/hsoni/TOSHIBA EXT/Review-exps-TNSM-l2bm/1g-churn-congested/")
         churn_congested_sim_dirs = utils.working_dir+'/churn-congested/dst,' \
                                    +utils.working_dir+'/churn-congested/dst-lb,' \
                                    +utils.working_dir+'/churn-congested/l2bm-10,' \
-                                   +utils.working_dir+'/churn-congested/l2bm-20,' \
-                                   +utils.working_dir+'/churn-congested/l2bm-30,' \
                                    +utils.working_dir+'/churn-congested/l2bm-40,' \
-                                   +utils.working_dir+'/churn-congested/l2bm-50,' \
-                                   +utils.working_dir+'/churn-congested/l2bm-60'
+                                   +utils.working_dir+'/churn-congested/l2bm-60,'\
+                                   +utils.working_dir+'/churn-congested/l2bm-20'
 
-        labels = 'DST-PL,DST-LU,L2BM-0.1,L2BM-0.2,L2BM-0.3,L2BM-0.4,L2BM-0.5,L2BM-0.6'
-        # labels = 'DST-PL,DST-LU,L2BM-0.1,L2BM-0.2,L2BM-0.4,L2BM-0.6'
+        # labels = 'DST-PL,DST-LU,L2BM-0.1,L2BM-0.2,L2BM-0.3,L2BM-0.4,L2BM-0.5,L2BM-0.6'
+        labels = 'DST-PL,DST-LU,L2BM-0.1,L2BM-0.6,L2BM-0.4,L2BM-0.2'
         plot_save_dir_c = utils.working_dir+'/churn-congested/plots/'
         util.mkdir(plot_save_dir_c)
         osp_w_c = OtherStatsProcessorWChurn()
@@ -85,21 +84,9 @@ if __name__ == "__main__":
                                                 run_list, color_dict, marker_dict, do_mean_stats)
     osp_w_c.plot_other_metrics_for_different_groups(churn_congested_sim_dirs, plot_save_dir_c, labels,start, stop,
                                                     inter, run_list, color_dict, marker_dict)
-    plot_time_sequence_based_metrics(churn_congested_sim_dirs, save_plots, labels, 130, 190, 200, color_dict, marker_dict)
-    plot_time_sequence_based_metrics(churn_congested_sim_dirs, save_plots, labels, 130, 200, 200, color_dict, marker_dict)
-    plot_time_sequence_based_metrics(churn_congested_sim_dirs, save_plots, labels, 130, 10, 200, color_dict, marker_dict)
+    plot_time_sequence_based_metrics(churn_congested_sim_dirs, plot_save_dir_c, labels, 130, 190, 200, color_dict, marker_dict)
+    plot_time_sequence_based_metrics(churn_congested_sim_dirs, plot_save_dir_c, labels, 130, 200, 200, color_dict, marker_dict)
+    plot_time_sequence_based_metrics(churn_congested_sim_dirs, plot_save_dir_c, labels, 130, 10, 200, color_dict, marker_dict)
     group = 130
     runs = range(500)
-    churn_congested_sim_dirs_all = \
-        utils.working_dir+'/churn-congested/dst,' \
-        +utils.working_dir+'/churn-congested/dst-lb,' \
-        +utils.working_dir+'/churn-congested/l2bm-10,' \
-        +utils.working_dir+'/churn-congested/l2bm-20,' \
-        +utils.working_dir+'/churn-congested/l2bm-30,' \
-        +utils.working_dir+'/churn-congested/l2bm-40,' \
-        +utils.working_dir+'/churn-congested/l2bm-50,' \
-        +utils.working_dir+'/churn-congested/l2bm-60'
-    labels = 'DST-PL,DST-LU,L2BM-0.1,L2BM-0.2,L2BM-0.3,L2BM-0.4,L2BM-0.5,L2BM-0.6'
-    # labels = 'DST-PL,DST-LU,L2BM-0.1,L2BM-0.2,L2BM-0.4,L2BM-0.6'
-    color_dict = util.get_color_dict(churn_congested_sim_dirs_all, labels)
-    osp_w_c.plot_bw_acceptance_bar_graph(churn_congested_sim_dirs_all, plot_save_dir_c, labels, group, runs, color_dict)
+    osp_w_c.plot_bw_acceptance_bar_graph(churn_congested_sim_dirs, plot_save_dir_c, labels, group, runs, color_dict)

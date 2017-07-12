@@ -25,7 +25,10 @@
 
 
 import Utils as utils
+import itertools
 import time
+import numpy as np
+import sys
 import argparse
 import scipy.stats as ss
 import matplotlib
@@ -37,7 +40,7 @@ plt.style.use('classic')
 
 
 max_lu_th = 0.90
-link_capacity = 100000.0
+link_capacity = 1000.0
 
 def main():
     b = [3, 5, 6, 4]
@@ -263,23 +266,27 @@ def plot_average_data_points(lbl_plot_data_dict_ls, plot_save_dir, group_start, 
     xticks = np.true_divide(xticks, 10**exp)
     np_group_size = np.true_divide(np_group_size, 10**exp)
     xlabel = 'Number of Groups'+lbl_prefix
-    yticks = np.arange(0.0, 1.06, 0.05)
+    yticks = np.arange(0.0, 1.01, 0.05)
     loc = 'upper left'
     plot_metrics_for_all_the_algos('avg-lu', plot_save_dir, lbl_plot_data_dict_ls, 0, np_group_size, color_dict,
                                    marker_dict, xlabel, 'Avg Link utilization',
                                    'Average link utilization Vs Number of groups', xticks_ls=xticks, ytick_ls=yticks,
                                    loc=loc)
-    yticks = np.arange(0.0, 1.06, 0.05)
+    yticks = np.arange(0.0, 1.01, 0.05)
     plot_metrics_for_all_the_algos('stddev-lu', plot_save_dir, lbl_plot_data_dict_ls, 1, np_group_size, color_dict,
                                    marker_dict, xlabel, 'StdDev Link utilization',
                                    'StdDev link utilization Vs Number of groups', xticks_ls=xticks, ytick_ls=yticks,
                                    loc=loc)
     # loc = 'lower right'
     percent = str(max_lu_th*100)+'%'
+    yticks_np = np.arange(-5.0, 35, 5)
+    yticks = ["%.2f" % number for number in np.nditer(yticks_np)]
+    yticks.pop(0)
+    yticks.insert(0, '')
     plot_metrics_for_all_the_algos('link-gt-90-lu', plot_save_dir, lbl_plot_data_dict_ls, 2, np_group_size, color_dict,
-                                   marker_dict, xlabel, '% of links w/ utilization > '+percent,
-                                   '% of links w/ utilization > '+percent+' Vs Number of groups', xticks_ls=xticks,
-                                   loc=loc)
+                                   marker_dict, xlabel, '% Critical links',
+                                   '% Critical links Vs Number of groups', xticks_ls=xticks, ytick_ls=yticks_np,
+                                   ytick_lbl_ls=yticks, loc=loc)
 
 
 
@@ -290,13 +297,16 @@ def plot_superimposed_datapoints_for_different_groups(links_stat_dirs_sims, link
                                                              labels, group_start, group_stop, group_int, group_runs)
     grid_lbl_plot_data_dict = link_utils_for_different_groups('grid', links_stat_dirs_grid, plot_save_dir,
                                                               labels, group_start, group_stop, group_int, group_runs)
+    # print sim_lbl_plot_data_dict
+    # print grid_lbl_plot_data_dict
     plot_average_data_points([sim_lbl_plot_data_dict, grid_lbl_plot_data_dict], plot_save_dir, group_start, group_stop,
                              group_int, color_dict, marker_dict)
 
 
 def plot_metrics_for_all_the_algos(file_name, dest_dir_loca, lbl_plot_data_dict_ls, metrics_index, np_group_size,
                                    color_dict, marker_dict, xlable, ylable, title, x1=None, x2=None,
-                                   xticks_ls=np.arange(40, 111, 10), y1=None, y2=None, ytick_ls=None, loc=0):
+                                   xticks_ls=np.arange(40, 111, 10), y1=None, y2=None, ytick_ls=None,
+                                   ytick_lbl_ls=None, loc=0):
     plt.clf()
     fig = plt.figure()
     ax = fig.add_subplot(111)
@@ -331,7 +341,9 @@ def plot_metrics_for_all_the_algos(file_name, dest_dir_loca, lbl_plot_data_dict_
                 plt.xlim(x1, x2)
             else:
                 ''
-            if ytick_ls is not None:
+            if ytick_ls is not None and ytick_lbl_ls is not None:
+                plt.yticks(ytick_ls, ytick_lbl_ls)
+            elif ytick_ls is not None:
                 plt.yticks(ytick_ls)
             elif y1 is not None and y2 is not None:
                 plt.ylim(y1, y2)
@@ -554,15 +566,6 @@ def plot_normalized_metrics_for_all_the_algos(file_name, dest_dir, lbl_plot_dict
 
 
 
-def mkdir(path):
-    try:
-        os.makedirs(path)
-    except OSError as exc:
-        if exc.errno == errno.EEXIST and os.path.isdir(path):
-            pass
-        else:
-            raise
-
 
 # python ~/multicast-qos-python-may-2016/SimulationStatsProcessor.py
 # --groups_parent_dirs /home/hsoni/qos-multicast-lb-compile/qos-multicast-lb,
@@ -610,13 +613,13 @@ if __name__ == "__main__":
                            +utils.working_dir+'/wo-churn-congested/l2bm-60'
         labels = 'DST-PL,DST-LU,L2BM-0.1,L2BM-0.2,L2BM-0.3,L2BM-0.4,L2BM-0.5,L2BM-0.6'
         # labels = 'DST-PL,DST-LU,L2BM-0.1,L2BM-0.2,L2BM-0.4,L2BM-0.6'
-        start = 1000
-        stop = 15000
-        inter = 1000
-        # run_list = range(1, 21, 1)
-        run_list = range(500)
+        start = 10
+        stop = 150
+        inter = 10
+        run_list = range(1, 21, 1)
+        # run_list = range(500)
     plot_save_dir = utils.working_dir+'/wo-churn-congested/plots/'
-    mkdir(plot_save_dir)
+    utils.mkdir(plot_save_dir)
     color_dict = utils.get_color_dict(simulations_dirs, labels)
     marker_dict = utils.get_marker_dict(simulations_dirs, labels)
     color = plot_link_util_metrics_for_different_groups('sim', simulations_dirs, plot_save_dir, labels, start, stop,

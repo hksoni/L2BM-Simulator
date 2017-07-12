@@ -229,15 +229,18 @@ class OtherStatsProcessorWOChurn(object):
         # plot_metrics_for_all_the_algos('total-tree-nodes', plot_save_dir, lbl_plot_data_dict_ls, 3, np_group_size,
         #                                color_dict, marker_dict, xlabel, 'Total Tree Nodes',
         #                                'Total Tree Nodes Vs Number of groups', xticks_ls=xticks, loc=0)
-        yticks = np.arange(0.4, 1.11, 0.05)
+        yticks_np = np.arange(0.4, 1.06, 0.05)
+        yticks = ["%.2f" % number for number in np.nditer(yticks_np)]
+        yticks.pop()
+        yticks.append('')
         plot_metrics_for_all_the_algos('recv-accept-ratio', plot_save_dir, lbl_plot_data_dict_ls, 4, np_group_size,
                                        color_dict, marker_dict, xlabel, 'Multicast Joins Acceptance Ratio',
                                        'Multicast Joins Acceptance Ratio Vs Number of groups', xticks_ls=xticks,
-                                       ytick_ls=yticks, loc=0)
+                                       ytick_ls=yticks_np, ytick_lbl_ls=yticks, loc=0)
         plot_metrics_for_all_the_algos('bw-accept-ratio', plot_save_dir, lbl_plot_data_dict_ls, 5, np_group_size,
                                        color_dict, marker_dict, xlabel, 'BW. Demands Acceptance Ratio',
                                        'BW. Demands Acceptance Ratio Vs Number of groups', xticks_ls=xticks,
-                                       ytick_ls=yticks, loc=0)
+                                       ytick_ls=yticks_np, ytick_lbl_ls=yticks, loc=0)
 
 
     def plot_other_metrics_for_different_groups(self, links_stat_dirs, plot_save_dir, labels, group_start, group_stop,
@@ -256,9 +259,14 @@ class OtherStatsProcessorWOChurn(object):
         # self.plot_bw_accept_bar_for_all_the_algos(file_name, plot_save_dir, lbl_plot_data_dict, 0, color_dict, ylabel)
         file_name = 'bw-accept-ratio-'+str(group)
         ylabel = 'Join Request Acceptance Ratio'
-        yticks = np.arange(0.0, 1.3, 0.1)
+        yticks_np = np.arange(0.0, 1.3, 0.1)
+        yticks = ["%.1f" % number for number in np.nditer(yticks_np)]
+        yticks.pop()
+        yticks.pop()
+        yticks.append('')
+        yticks.append('')
         self.plot_bw_accept_bar_for_all_the_algos(file_name, plot_save_dir, lbl_plot_data_dict, 1, color_dict,
-                                                  title, ylabel, yticks=yticks)
+                                                  title, ylabel, yticks=yticks_np, yticks_lbl_ls=yticks)
 
 
     def get_bw_acceptance_bar_graph_data(self, links_stat_dirs, labels, group, group_runs):
@@ -278,7 +286,7 @@ class OtherStatsProcessorWOChurn(object):
 
 
     def plot_bw_accept_bar_for_all_the_algos(self, file_name, dest_dir_loca, lbl_plot_data_dict, metric_index,
-                                             color_dict, title, ylable, yticks=None, loc=None):
+                                             color_dict, title, ylable, yticks=None, yticks_lbl_ls=None, loc=None):
         print 'plot_bw_accept_bar_for_all_the_algos'
         plt.clf()
         fig = plt.figure()
@@ -334,6 +342,8 @@ class OtherStatsProcessorWOChurn(object):
         ax.set_xticks(ind - width)
         if yticks is not None:
             ax.set_yticks(yticks)
+        if yticks_lbl_ls is not None:
+            ax.set_yticklabels(yticks_lbl_ls)
         ax.set_xticklabels(keys)
         legends = ax.legend(rects_ls, labels, ncol=4, frameon=False, loc=0, prop={'size':10})
 
@@ -360,7 +370,7 @@ class OtherStatsProcessorWOChurn(object):
 def plot_metrics_for_all_the_algos(file_name, dest_dir_loca, lbl_plot_data_dict_ls, metrics_index, np_group_size,
                                    color_dict, marker_dict, xlable, ylable, title, x1=None, x2=None,
                                    xticks_ls=np.arange(40, 111, 10), y1=None, y2=None, ytick_ls=None,
-                                   loc=0):
+                                   ytick_lbl_ls=None, loc=0):
     plt.clf()
     fig = plt.figure()
     ax = fig.add_subplot(111)
@@ -396,7 +406,9 @@ def plot_metrics_for_all_the_algos(file_name, dest_dir_loca, lbl_plot_data_dict_
                 plt.xlim(x1, x2)
             else:
                 ''
-            if ytick_ls is not None:
+            if ytick_ls is not None and ytick_lbl_ls is not None:
+                plt.yticks(ytick_ls, ytick_lbl_ls)
+            elif ytick_ls is not None:
                 plt.yticks(ytick_ls)
             elif y1 is not None and y2 is not None:
                 plt.ylim(y1, y2)
@@ -413,7 +425,7 @@ def plot_metrics_for_all_the_algos(file_name, dest_dir_loca, lbl_plot_data_dict_
         if color_dict.has_key(t.get_text()):
             t.set_color(color_dict[t.get_text()])
         # print t.get_text()
-    fig.savefig(dest_dir_loca + file_name + ".svg", format='svg', dpi=1200)
+    # fig.savefig(dest_dir_loca + file_name + ".svg", format='svg', dpi=1200)
     fig.savefig(dest_dir_loca + file_name + ".eps", format='eps', dpi=1200)
 
 
@@ -550,13 +562,16 @@ def plot_superimposed_bw_accept_ratio_for_different_groups(links_stat_dirs_sims,
     lbl_plot_data_dict_ls = [sim_lbl_plot_data_dict, grid_lbl_plot_data_dict]
     np_group_size = np.arange(int(group_start), int(group_stop) + 1, int(group_int))
     xticks = np.arange(int(group_start)-10, int(group_stop)+10 + 1, int(group_int))
-    yticks = np.arange(0.50, 1.06, 0.05)
+    yticks_np = np.arange(0.50, 1.06, 0.05)
     loc = 'lower right'
+    yticks = ["%.1f" % number for number in np.nditer(yticks_np)]
+    yticks.pop()
+    yticks.append('')
     plot_metrics_for_all_the_algos('bw-accept-ratio-comp', plot_save_dir, lbl_plot_data_dict_ls, 5, np_group_size,
                                    color_dict, marker_dict,
                                    'Number of Groups', 'BW. Demands Acceptance Ratio',
                                    'BW. Demands Acceptance Ratio Vs Number of groups', xticks_ls=xticks,
-                                   ytick_ls=yticks)
+                                   ytick_ls=yticks_np, ytick_lbl_ls=yticks)
 
 
 

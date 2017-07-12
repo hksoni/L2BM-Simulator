@@ -30,8 +30,8 @@ import numpy as np
 import sys
 
 # working_dir = os.path.expanduser('~/1G/')
-working_dir = os.path.expanduser("/run/media/hsoni/TOSHIBA EXT/Review-exps-TNSM-l2bm/1g-churn-congested")
-# working_dir = os.path.expanduser('~/tnsm-review-sim/100G/')
+working_dir = os.path.expanduser("/run/media/hsoni/TOSHIBA EXT/Review-exps-TNSM-l2bm/1g-churn-congested/")
+# working_dir = os.path.expanduser('~/tnsm-review-sim/1G/')
 # bw_map_file = '/home/hsoni/qos-multicast-compile/exp3-vabw-25-70-LLDMs/ip-bw-qos-mapping-va.txt'
 bw_map_file = working_dir+'/qos-multicast-compile/exp3-vabw-25-70-LLDMs/ip-bw-qos-mapping-va.txt'
 

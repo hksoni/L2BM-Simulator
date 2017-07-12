@@ -47,9 +47,11 @@ if __name__ == "__main__":
     parser.add_argument("--groups_stop", help="last number for multicast group size")
     parser.add_argument("--groups_size_int", help="interval for multicast group size")
     args = parser.parse_args()
+    wo_churn_congested_sim_dirs = ''
     if args.groups_dirs is not None and args.groups_start is not None \
             and args.groups_stop is not None and args.groups_size_int is not None \
             and args.labels is not None:
+
         for sub in args.groups_dirs:
             wo_churn_congested_sim_dirs += args.working_dir+"/"+sub+","
         wo_churn_congested_sim_dirs = wo_churn_congested_sim_dirs[:-1]
@@ -59,23 +61,31 @@ if __name__ == "__main__":
         inter = args.groups_size_int
         run_list = range(1, 21, 1)
     else:
+        utils.working_dir = '/user/hsoni/home/tnsm-review-sim/1G/'
+        # wo_churn_congested_sim_dirs = utils.working_dir+'/wo-churn-congested/dst,' \
+        #                    +utils.working_dir+'/wo-churn-congested/dst-lb,' \
+        #                    +utils.working_dir+'/wo-churn-congested/l2bm-10,' \
+        #                    +utils.working_dir+'/wo-churn-congested/l2bm-20,' \
+        #                    +utils.working_dir+'/wo-churn-congested/l2bm-30,' \
+        #                    +utils.working_dir+'/wo-churn-congested/l2bm-40,' \
+        #                    +utils.working_dir+'/wo-churn-congested/l2bm-50,' \
+        #                    +utils.working_dir+'/wo-churn-congested/l2bm-60'
         wo_churn_congested_sim_dirs = utils.working_dir+'/wo-churn-congested/dst,' \
-                           +utils.working_dir+'/wo-churn-congested/dst-lb,' \
-                           +utils.working_dir+'/wo-churn-congested/l2bm-10,' \
-                           +utils.working_dir+'/wo-churn-congested/l2bm-20,' \
-                           +utils.working_dir+'/wo-churn-congested/l2bm-30,' \
-                           +utils.working_dir+'/wo-churn-congested/l2bm-40,' \
-                           +utils.working_dir+'/wo-churn-congested/l2bm-50,' \
-                           +utils.working_dir+'/wo-churn-congested/l2bm-60'
-        labels = 'DST-PL,DST-LU,L2BM-0.1,L2BM-0.2,L2BM-0.3,L2BM-0.4,L2BM-0.5,L2BM-0.6'
-        # labels = 'DST-PL,DST-LU,L2BM-0.1,L2BM-0.2,L2BM-0.4,L2BM-0.6'
+                                      +utils.working_dir+'/wo-churn-congested/dst-lb,' \
+                                      +utils.working_dir+'/wo-churn-congested/l2bm-10,' \
+                                      +utils.working_dir+'/wo-churn-congested/l2bm-40,' \
+                                      +utils.working_dir+'/wo-churn-congested/l2bm-60,' \
+                                      +utils.working_dir+'/wo-churn-congested/l2bm-20,' \
+        # labels = 'DST-PL,DST-LU,L2BM-0.1,L2BM-0.2,L2BM-0.3,L2BM-0.4,L2BM-0.5,L2BM-0.6'
+        labels = 'DST-PL,DST-LU,L2BM-0.1,L2BM-0.4,L2BM-0.6,L2BM-0.2'
         start = 10
         stop = 150
         inter = 10
+        link_capacity = 1000
         # run_list = range(1, 21, 1)
         run_list = range(500)
     osp_wo_c = OtherStatsProcessorWOChurn()
-    plot_save_dir = utils.working_dir+'/wochurn-congested/plots/'
+    plot_save_dir = utils.working_dir+'/wo-churn-congested/plots/'
     mkdir(plot_save_dir)
     color_dict = utils.get_color_dict(wo_churn_congested_sim_dirs, labels)
     marker_dict = utils.get_marker_dict(wo_churn_congested_sim_dirs, labels)
