@@ -298,16 +298,16 @@ def plot_average_data_points(lbl_plot_data_dict, plot_save_dir, group_start, gro
     yticks_np = np.arange(0.0, 1.01, 0.05)
     loc = 0
     plot_metrics_for_all_the_algos('avg-lu', plot_save_dir, lbl_plot_data_dict, 0, np_group_size,
-                                   color_dict, marker_dict, lbl_prefix, 'Average Link utilization',
+                                   color_dict, marker_dict, xlabel, 'Average Link utilization',
                                    'Avg. link utilization Vs Number of groups', xticks_ls=xticks,
                                    ytick_ls=yticks_np, loc=loc)
     yticks_np = np.arange(0.0, 1.01, 0.05)
     plot_metrics_for_all_the_algos('stddev-lu', plot_save_dir, lbl_plot_data_dict, 1, np_group_size,
-                                   color_dict, marker_dict, lbl_prefix, 'Standard Deviation of Link utilization',
+                                   color_dict, marker_dict, xlabel, 'Standard Deviation of Link utilization',
                                    'Stddev link utilization Vs Number of groups', xticks_ls=xticks,
                                    ytick_ls=yticks_np, loc=loc)
     plot_metrics_for_all_the_algos('max-lu', plot_save_dir, lbl_plot_data_dict, 2, np_group_size,
-                                   color_dict, marker_dict, lbl_prefix, 'Maximum Link utilization',
+                                   color_dict, marker_dict, xlabel, 'Maximum Link utilization',
                                    'Max link utilization Vs Number of groups', xticks_ls=xticks,
                                    ytick_ls=yticks_np, loc=loc)
     yticks_np = np.arange(-5, 35, 5)
@@ -316,22 +316,22 @@ def plot_average_data_points(lbl_plot_data_dict, plot_save_dir, group_start, gro
     yticks.insert(0, '')
     percent = '60%'
     plot_metrics_for_all_the_algos('num-link-gt-60-lu', plot_save_dir, lbl_plot_data_dict, 3, np_group_size,
-                                   color_dict, marker_dict, lbl_prefix, 'No. of links w/ utilization > '+percent,
+                                   color_dict, marker_dict, xlabel, 'No. of links w/ utilization > '+percent,
                                    'No. of links w/ utilization > '+percent+' Vs Number of groups',
                                    xticks_ls=xticks, ytick_ls=yticks_np, ytick_lbl_ls=yticks)
     percent = '70%'
     plot_metrics_for_all_the_algos('num-link-gt-70-lu', plot_save_dir, lbl_plot_data_dict, 4, np_group_size,
-                                   color_dict, marker_dict, lbl_prefix, 'No. of links w/ utilization > '+percent,
+                                   color_dict, marker_dict, xlabel, 'No. of links w/ utilization > '+percent,
                                    'No. of links w/ utilization > '+percent+' Vs Number of groups',
                                    xticks_ls=xticks, ytick_ls=yticks_np, ytick_lbl_ls=yticks)
     percent = '80%'
     plot_metrics_for_all_the_algos('num-link-gt-80-lu', plot_save_dir, lbl_plot_data_dict, 5, np_group_size,
-                                   color_dict, marker_dict, lbl_prefix, 'No. of links w/ utilization > '+percent,
+                                   color_dict, marker_dict, xlabel, 'No. of links w/ utilization > '+percent,
                                    'No. of links w/ utilization > '+percent+' Vs Number of groups',
                                    xticks_ls=xticks, ytick_ls=yticks_np, ytick_lbl_ls=yticks)
     percent = '90%'
     plot_metrics_for_all_the_algos('num-link-gt-90-lu', plot_save_dir, lbl_plot_data_dict, 6, np_group_size,
-                                   color_dict, marker_dict, lbl_prefix, '% Critical links',
+                                   color_dict, marker_dict, xlabel, '% Critical links',
                                    '% Critical links Vs Number of groups', xticks_ls=xticks, ytick_ls=yticks_np, ytick_lbl_ls=yticks)
 
 
