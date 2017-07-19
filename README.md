@@ -8,5 +8,11 @@ Features:
 4. It includes the necessary but basic scripts to share the simulator compute load on multiple nodes and collect results at a given node.
 
 
-The simualator has been tested on Fedora Core 19 and above. Following packages are required to run the code.
+The simualator has been tested on Fedora Core 19 and above. 
+Following command will help to install required software.
+
+sudo dnf install -y numpy scipy python-matplotlib ipython python-pandas sympy python-nose atlas-devel
+if your matplotlib version throws error for pyparsing, use
+
+pip install pyparsing
 
